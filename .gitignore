@@ -69,3 +69,6 @@ missing
 srcL
 workspace
 x64
+
+*.user
+.vs/

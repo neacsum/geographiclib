@@ -23,7 +23,7 @@ namespace GeographicLib {
    * seconds.  In addition, handle NANs and infinities on input and output.
    *
    * Example of use:
-   * \include example-DMS.cpp
+   * \include examples/DMS.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT DMS {
   public:

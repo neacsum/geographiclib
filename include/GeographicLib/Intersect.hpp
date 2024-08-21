@@ -45,7 +45,7 @@ namespace GeographicLib {
    * &minus;1, if they are antiparallel.
    *
    * Example of use:
-   * \include example-Intersect.cpp
+   * \include examples/Intersect.cpp
    *
    * <a href="IntersectTool.1.html">IntersectTool</a> is a command-line utility
    * providing access to the functionality of this class.

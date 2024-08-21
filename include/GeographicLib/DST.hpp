@@ -53,7 +53,7 @@ namespace GeographicLib {
    * https://github.com/mborgerding/kissfft by Mark Borgerding.
    *
    * Example of use:
-   * \include example-DST.cpp
+   * \include examples/DST.cpp
    *
    * \note The FFTW package https://www.fftw.org/ can also be used.  However
    * this is a more complicated dependency, its CMake support is broken, and it

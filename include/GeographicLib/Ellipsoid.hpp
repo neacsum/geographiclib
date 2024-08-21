@@ -25,7 +25,7 @@ namespace GeographicLib {
    * \e f < 99/100 (i.e., 1/100 < b/a < 100).
    *
    * Example of use:
-   * \include example-Ellipsoid.cpp
+   * \include examples/Ellipsoid.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT Ellipsoid {

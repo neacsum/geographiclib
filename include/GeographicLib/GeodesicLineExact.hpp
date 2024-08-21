@@ -32,7 +32,7 @@ namespace GeographicLib {
    * GeodesicLine class.
    *
    * Example of use:
-   * \include example-GeodesicLineExact.cpp
+   * \include examples/GeodesicLineExact.cpp
    *
    * <a href="GeodSolve.1.html">GeodSolve</a> is a command-line utility
    * providing access to the functionality of GeodesicExact and

@@ -1,4 +1,4 @@
-// Example of using the GeographicLib::GARS class
+// Example of using the GeographicLib::Georef class
 
 #include <iostream>
 #include <iomanip>

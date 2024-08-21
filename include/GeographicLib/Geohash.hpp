@@ -28,7 +28,7 @@ namespace GeographicLib {
    * representations.
    *
    * Example of use:
-   * \include example-Geohash.cpp
+   * \include examples/Geohash.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT Geohash {

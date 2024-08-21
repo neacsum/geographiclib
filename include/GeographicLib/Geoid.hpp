@@ -73,7 +73,7 @@ namespace GeographicLib {
    * safe.
    *
    * Example of use:
-   * \include example-Geoid.cpp
+   * \include examples/Geoid.cpp
    *
    * <a href="GeoidEval.1.html">GeoidEval</a> is a command-line utility
    * providing access to the functionality of Geoid.

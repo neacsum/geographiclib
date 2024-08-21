@@ -75,7 +75,7 @@ namespace GeographicLib {
    * See \ref transversemercator for a discussion of this projection.
    *
    * Example of use:
-   * \include example-TransverseMercatorExact.cpp
+   * \include examples/TransverseMercatorExact.cpp
    *
    * <a href="TransverseMercatorProj.1.html">TransverseMercatorProj</a> is a
    * command-line utility providing access to the functionality of

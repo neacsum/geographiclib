@@ -27,7 +27,7 @@ namespace GeographicLib {
    * <i>S</i><sub><i>nm</i></sub>).
    *
    * Example of use:
-   * \include example-SphericalHarmonic2.cpp
+   * \include examples/SphericalHarmonic2.cpp
    **********************************************************************/
 
   // Don't include the GEOGRPAHIC_EXPORT because this header-only class isn't

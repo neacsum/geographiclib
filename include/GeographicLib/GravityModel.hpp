@@ -74,7 +74,7 @@ namespace GeographicLib {
    *   Francisco, 1967).
    *
    * Example of use:
-   * \include example-GravityModel.cpp
+   * \include examples/GravityModel.cpp
    *
    * <a href="Gravity.1.html">Gravity</a> is a command-line utility providing
    * access to the functionality of GravityModel and GravityCircle.

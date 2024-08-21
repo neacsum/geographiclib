@@ -34,7 +34,7 @@ namespace GeographicLib {
   /**
    * \brief Nearest-neighbor calculations
    *
-   * This class solves the nearest-neighbor problm using a vantage-point tree
+   * This class solves the nearest-neighbor problem using a vantage-point tree
    * as described in \ref nearest.
    *
    * This class is templated so that it can handle arbitrary metric spaces as
@@ -90,7 +90,7 @@ namespace GeographicLib {
    * object.  This is illustrated in the example.
    *
    * Example of use:
-   * \include example-NearestNeighbor.cpp
+   * \include examples/NearestNeighbor.cpp
    **********************************************************************/
   template<typename dist_t, typename pos_t, class distfun_t>
   class NearestNeighbor {

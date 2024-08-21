@@ -63,7 +63,7 @@ namespace GeographicLib {
    * - The underlying projections are not very accurately implemented.
    *
    * Example of use:
-   * \include example-MGRS.cpp
+   * \include examples/MGRS.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT MGRS {
   private:

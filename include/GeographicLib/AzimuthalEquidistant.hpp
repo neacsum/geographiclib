@@ -32,7 +32,7 @@ namespace GeographicLib {
    * Geodesic::WGS84()).  For more information on geodesics see \ref geodesic.
    *
    * Example of use:
-   * \include example-AzimuthalEquidistant.cpp
+   * \include examples/AzimuthalEquidistant.cpp
    *
    * <a href="GeodesicProj.1.html">GeodesicProj</a> is a command-line utility
    * providing access to the functionality of AzimuthalEquidistant, Gnomonic,

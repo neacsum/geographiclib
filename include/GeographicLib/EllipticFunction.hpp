@@ -58,7 +58,7 @@ namespace GeographicLib {
    * The notation follows https://dlmf.nist.gov/19 and https://dlmf.nist.gov/22
    *
    * Example of use:
-   * \include example-EllipticFunction.cpp
+   * \include examples/EllipticFunction.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT EllipticFunction {
   private:

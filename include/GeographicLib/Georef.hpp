@@ -26,7 +26,7 @@ namespace GeographicLib {
    * implement similar compact representations.
    *
    * Example of use:
-   * \include example-Georef.cpp
+   * \include examples/Georef.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT Georef {

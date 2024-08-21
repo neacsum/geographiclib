@@ -74,7 +74,7 @@ namespace GeographicLib {
    * For more information on normal gravity see \ref normalgravity.
    *
    * Example of use:
-   * \include example-NormalGravity.cpp
+   * \include examples/NormalGravity.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT NormalGravity {

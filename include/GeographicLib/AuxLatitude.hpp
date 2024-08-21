@@ -70,7 +70,7 @@ namespace GeographicLib {
    * for conversions with with abs(\e f) &gt; 1/150.
    *
    * Example of use:
-   * \include example-AuxLatitude.cpp
+   * \include examples/AuxLatitude.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT AuxLatitude {
     typedef Math::real real;

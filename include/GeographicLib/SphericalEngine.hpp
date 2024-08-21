@@ -34,7 +34,7 @@ namespace GeographicLib {
    * See SphericalEngine.cpp for more information on the implementation.
    *
    * Example of use:
-   * \include example-SphericalEngine.cpp
+   * \include examples/SphericalEngine.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT SphericalEngine {

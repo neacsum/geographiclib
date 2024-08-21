@@ -9,7 +9,7 @@ using namespace GeographicLib;
 
 int main() {
   try {
-    cout << "WGS84 parameters:\n"
+    cout << "WGS84 parameters:\n" << std::fixed
          << "a = " << Constants::WGS84_a() << " m\n"
          << "f = 1/" << 1/Constants::WGS84_f() << "\n";
   }

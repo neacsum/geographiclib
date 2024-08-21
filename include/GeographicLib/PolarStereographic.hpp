@@ -31,7 +31,7 @@ namespace GeographicLib {
    * measured clockwise from true north.
    *
    * Example of use:
-   * \include example-PolarStereographic.cpp
+   * \include examples/PolarStereographic.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT PolarStereographic {
   private:

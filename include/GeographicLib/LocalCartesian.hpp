@@ -29,7 +29,7 @@ namespace GeographicLib {
    * Geocentric object (by default Geocentric::WGS84()).
    *
    * Example of use:
-   * \include example-LocalCartesian.cpp
+   * \include examples/LocalCartesian.cpp
    *
    * <a href="CartConvert.1.html">CartConvert</a> is a command-line utility
    * providing access to the functionality of Geocentric and LocalCartesian.

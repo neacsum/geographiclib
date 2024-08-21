@@ -32,7 +32,7 @@ namespace GeographicLib {
    * with OpenMP) to speed up the computation of geoid heights.
    *
    * Example of use:
-   * \include example-GravityCircle.cpp
+   * \include examples/GravityCircle.cpp
    *
    * <a href="Gravity.1.html">Gravity</a> is a command-line utility providing
    * access to the functionality of GravityModel and GravityCircle.

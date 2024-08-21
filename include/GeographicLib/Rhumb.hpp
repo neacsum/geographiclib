@@ -73,7 +73,7 @@ namespace GeographicLib {
    * For more information on rhumb lines see \ref rhumb.
    *
    * Example of use:
-   * \include example-Rhumb.cpp
+   * \include examples/Rhumb.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT Rhumb {
@@ -375,7 +375,7 @@ namespace GeographicLib {
    * scope as long as the RhumbLine.
    *
    * Example of use:
-   * \include example-RhumbLine.cpp
+   * \include examples/RhumbLine.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT RhumbLine {

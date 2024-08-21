@@ -92,7 +92,7 @@ namespace GeographicLib {
    *   generalizes the spherical great circle to a geodesic.
    *
    * Example of use:
-   * \include example-Gnomonic.cpp
+   * \include examples/Gnomonic.cpp
    *
    * <a href="GeodesicProj.1.html">GeodesicProj</a> is a command-line utility
    * providing access to the functionality of AzimuthalEquidistant, Gnomonic,

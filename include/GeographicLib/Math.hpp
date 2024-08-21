@@ -72,7 +72,7 @@ namespace GeographicLib {
    * type to be used by %GeographicLib.
    *
    * Example of use:
-   * \include example-Math.cpp
+   * \include examples/Math.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT Math {
   private:

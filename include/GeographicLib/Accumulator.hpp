@@ -34,7 +34,7 @@ namespace GeographicLib {
    * currently held in the accumulator.
    *
    * Example of use:
-   * \include example-Accumulator.cpp
+   * \include examples/Accumulator.cpp
    **********************************************************************/
   template<typename T = Math::real>
   class GEOGRAPHICLIB_EXPORT Accumulator {

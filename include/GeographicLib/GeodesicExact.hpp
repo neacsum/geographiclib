@@ -75,7 +75,7 @@ namespace GeographicLib {
    * Geodesic class for additional information on the geodesic problems.
    *
    * Example of use:
-   * \include example-GeodesicExact.cpp
+   * \include examples/GeodesicExact.cpp
    *
    * <a href="GeodSolve.1.html">GeodSolve</a> is a command-line utility
    * providing access to the functionality of GeodesicExact and

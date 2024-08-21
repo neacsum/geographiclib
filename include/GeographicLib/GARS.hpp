@@ -26,7 +26,7 @@ namespace GeographicLib {
    * implement similar compact representations.
    *
    * Example of use:
-   * \include example-GARS.cpp
+   * \include examples/GARS.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT GARS {

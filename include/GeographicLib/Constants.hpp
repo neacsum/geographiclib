@@ -102,7 +102,7 @@ namespace GeographicLib {
    * projections, and various unit conversions.
    *
    * Example of use:
-   * \include example-Constants.cpp
+   * \include examples/Constants.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT Constants {
   private:
@@ -311,7 +311,7 @@ namespace GeographicLib {
    * can be caught by the usual catch clauses.
    *
    * Example of use:
-   * \include example-GeographicErr.cpp
+   * \include examples/GeographicErr.cpp
    **********************************************************************/
   class GeographicErr : public std::runtime_error {
   public:

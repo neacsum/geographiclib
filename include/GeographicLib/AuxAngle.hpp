@@ -42,7 +42,7 @@ namespace GeographicLib {
    * count of the number of turns.)
    *
    * Example of use:
-   * \include example-AuxAngle.cpp
+   * \include examples/AuxAngle.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT AuxAngle {
   private:

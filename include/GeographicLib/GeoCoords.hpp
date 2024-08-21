@@ -41,7 +41,7 @@ namespace GeographicLib {
    * of the formats, decimal degrees, degrees minutes seconds, MGRS, UTM/UPS.
    *
    * Example of use:
-   * \include example-GeoCoords.cpp
+   * \include examples/GeoCoords.cpp
    *
    * <a href="GeoConvert.1.html">GeoConvert</a> is a command-line utility
    * providing access to the functionality of GeoCoords.

@@ -33,7 +33,7 @@ namespace GeographicLib {
    * datum (and vice versa).
    *
    * Example of use:
-   * \include example-OSGB.cpp
+   * \include examples/OSGB.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT OSGB {
   private:

@@ -28,7 +28,7 @@ namespace GeographicLib {
    * constructor for this class is private.)
    *
    * Example of use:
-   * \include example-MagneticCircle.cpp
+   * \include examples/MagneticCircle.cpp
    *
    * <a href="MagneticField.1.html">MagneticField</a> is a command-line utility
    * providing access to the functionality of MagneticModel and MagneticCircle.

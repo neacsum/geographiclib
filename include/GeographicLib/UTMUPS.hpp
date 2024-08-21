@@ -70,7 +70,7 @@ namespace GeographicLib {
    * "38north".
    *
    * Example of use:
-   * \include example-UTMUPS.cpp
+   * \include examples/UTMUPS.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT UTMUPS {
   private:

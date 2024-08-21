@@ -59,7 +59,7 @@ namespace GeographicLib {
    * respectively, (\e lat1, \e lon1) and (\e lat, \e lon).
    *
    * Example of use:
-   * \include example-CassiniSoldner.cpp
+   * \include examples/CassiniSoldner.cpp
    *
    * <a href="GeodesicProj.1.html">GeodesicProj</a> is a command-line utility
    * providing access to the functionality of AzimuthalEquidistant, Gnomonic,

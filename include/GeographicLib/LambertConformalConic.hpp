@@ -54,7 +54,7 @@ namespace GeographicLib {
    * calling function.  For example the Pennsylvania South state coordinate
    * system (<a href="https://www.spatialreference.org/ref/epsg/3364/">
    * EPSG:3364</a>) is obtained by:
-   * \include example-LambertConformalConic.cpp
+   * \include examples/LambertConformalConic.cpp
    *
    * <a href="ConicProj.1.html">ConicProj</a> is a command-line utility
    * providing access to the functionality of LambertConformalConic and

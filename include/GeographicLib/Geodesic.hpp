@@ -166,7 +166,7 @@ namespace GeographicLib {
    * For more information on geodesics see \ref geodesic.
    *
    * Example of use:
-   * \include example-Geodesic.cpp
+   * \include examples/Geodesic.cpp
    *
    * <a href="GeodSolve.1.html">GeodSolve</a> is a command-line utility
    * providing access to the functionality of Geodesic and GeodesicLine.

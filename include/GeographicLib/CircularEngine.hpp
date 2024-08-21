@@ -46,7 +46,7 @@ namespace GeographicLib {
    * may throw a std::bad_alloc exception.
    *
    * Example of use:
-   * \include example-CircularEngine.cpp
+   * \include examples/CircularEngine.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT CircularEngine {

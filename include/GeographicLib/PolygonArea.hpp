@@ -87,7 +87,7 @@ namespace GeographicLib {
    * @tparam GeodType the geodesic class to use.
    *
    * Example of use:
-   * \include example-PolygonArea.cpp
+   * \include examples/PolygonArea.cpp
    *
    * <a href="Planimeter.1.html">Planimeter</a> is a command-line utility
    * providing access to the functionality of PolygonAreaT.

@@ -736,7 +736,7 @@ g++ -g -o testprogram testprogram.o `pkg-config --libs geographiclib`
 
 Here is a very simple test code, which uses the Geodesic
 class:
-\include example-Geodesic-small.cpp
+\include examples/Geodesic-small.cpp
 This example is <code>examples/example-Geodesic-small.cpp</code>.  If you
 compile, link, and run it according to the instructions above, it should
 print out \verbatim

@@ -51,7 +51,7 @@ namespace GeographicLib {
    * of origin.
    *
    * Example of use:
-   * \include example-AlbersEqualArea.cpp
+   * \include examples/AlbersEqualArea.cpp
    *
    * <a href="ConicProj.1.html">ConicProj</a> is a command-line utility
    * providing access to the functionality of LambertConformalConic and

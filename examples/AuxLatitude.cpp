@@ -17,7 +17,7 @@ int main(int argc, const char* const argv[]) {
     typedef GeographicLib::AuxLatitude latitude;
     typedef GeographicLib::AuxAngle angle;
     if (argc != 3) {
-      std::cerr << "Usage: example-AuxLatitude <n> <base-lat>\n";
+      std::cerr << "Usage: auxlatitude <n> <base-lat>\n";
       return 1;
     }
     double n = GeographicLib::Utility::fract<double>(std::string(argv[1]));
@@ -26,9 +26,9 @@ int main(int argc, const char* const argv[]) {
     latitude aux(latitude::axes(a, b));
     bool series = false;        // Don't use series method
     std::cout << std::setprecision(9) << std::fixed;
-    int m = 1;
-    for (int l = 0; l < 90*m; ++l) {
-      angle phi(angle::degrees((l+0.5)/m));
+    int m = 5; //angle step
+    for (int l = 0; l < 90; l+=m) {
+      angle phi(angle::degrees(l));
       for (int auxout = 0; auxout < latitude::AUXNUMBER; ++auxout) {
         angle eta = aux.Convert(auxin, auxout, phi, series);
         std::cout << (auxout ? " " : "") << eta.degrees();

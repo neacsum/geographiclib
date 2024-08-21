@@ -30,7 +30,7 @@ namespace GeographicLib {
    * \brief Some utility routines for %GeographicLib
    *
    * Example of use:
-   * \include example-Utility.cpp
+   * \include examples/Utility.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT Utility {
   private:

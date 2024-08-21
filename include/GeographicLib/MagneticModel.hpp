@@ -66,7 +66,7 @@ namespace GeographicLib {
    *   - https://www.ngdc.noaa.gov/geomag/EMM/data/geomag/EMM2017_Sph_Linux.zip
    *
    * Example of use:
-   * \include example-MagneticModel.cpp
+   * \include examples/MagneticModel.cpp
    *
    * <a href="MagneticField.1.html">MagneticField</a> is a command-line utility
    * providing access to the functionality of MagneticModel and MagneticCircle.

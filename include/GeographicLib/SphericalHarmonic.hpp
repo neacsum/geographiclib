@@ -65,7 +65,7 @@ namespace GeographicLib {
    *   Boll. Geod. Sci. Aff. 41(4), 349--375 (1982).
    *
    * Example of use:
-   * \include example-SphericalHarmonic.cpp
+   * \include examples/SphericalHarmonic.cpp
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT SphericalHarmonic {

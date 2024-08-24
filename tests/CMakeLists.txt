@@ -1,5 +1,5 @@
 # Compile test programs
-set (TESTPROGRAMS geodtest signtest polygontest intersecttest)
+set (TESTPROGRAMS unit_tests)
 
 add_custom_target (testprograms)
 add_dependencies (testprograms tools)
@@ -8,7 +8,7 @@ if (GEOGRAPHICLIB_PRECISION GREATER 1)
 
   foreach (TESTPROGRAM ${TESTPROGRAMS})
 
-    add_executable (${TESTPROGRAM} EXCLUDE_FROM_ALL ${TESTPROGRAM}.cpp)
+    add_executable (${TESTPROGRAM} ${TESTPROGRAM}.cpp)
     add_dependencies (testprograms ${TESTPROGRAM})
     target_link_libraries (${TESTPROGRAM} ${PROJECT_LIBRARIES}
       ${HIGHPREC_LIBRARIES})

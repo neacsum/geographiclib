@@ -314,6 +314,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TransverseMercatorProj", "f
 		{9D78A05D-8F8B-4E32-9093-C60F2BA101A6} = {9D78A05D-8F8B-4E32-9093-C60F2BA101A6}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unit_tests", "fab\msc\unit_tests.vcxproj", "{91542012-4239-4660-803A-7B03F833B143}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D78A05D-8F8B-4E32-9093-C60F2BA101A6} = {9D78A05D-8F8B-4E32-9093-C60F2BA101A6}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -818,6 +823,14 @@ Global
 		{7E460DD2-E77C-49AD-8BD8-D7E067A16C17}.Release|x64.Build.0 = Release|x64
 		{7E460DD2-E77C-49AD-8BD8-D7E067A16C17}.Release|x86.ActiveCfg = Release|Win32
 		{7E460DD2-E77C-49AD-8BD8-D7E067A16C17}.Release|x86.Build.0 = Release|Win32
+		{91542012-4239-4660-803A-7B03F833B143}.Debug|x64.ActiveCfg = Debug|x64
+		{91542012-4239-4660-803A-7B03F833B143}.Debug|x64.Build.0 = Debug|x64
+		{91542012-4239-4660-803A-7B03F833B143}.Debug|x86.ActiveCfg = Debug|Win32
+		{91542012-4239-4660-803A-7B03F833B143}.Debug|x86.Build.0 = Debug|Win32
+		{91542012-4239-4660-803A-7B03F833B143}.Release|x64.ActiveCfg = Release|x64
+		{91542012-4239-4660-803A-7B03F833B143}.Release|x64.Build.0 = Release|x64
+		{91542012-4239-4660-803A-7B03F833B143}.Release|x86.ActiveCfg = Release|Win32
+		{91542012-4239-4660-803A-7B03F833B143}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

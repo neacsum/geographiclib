@@ -1,0 +1,36 @@
+<Project DefaultTargets="all">
+    <Target Name="all">
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Debug;Platform=x64"/>      
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Release;Platform=x64"/>      
+    </Target>
+	<Target Name="all_x86">
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Debug;Platform=x86"/>      
+        <MSBuild Projects="geographiclib.sln" Properties="Cofiguration=Release;Platform=x86"/>      
+	</Target>
+    <Target Name="lib">
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Debug;Platform=x64" Targets="geographiclib" />  
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Release;Platform=x64" Targets="geographiclib"/>
+	</Target>
+	<Target Name="lib_x86">
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Debug;Platform=x86" Targets="geographiclib"/>  
+        <MSBuild Projects="geographiclib.sln" Properties="Configuration=Release;Platform=x86" Targets="geographiclib"/>
+    </Target>
+    <Target Name="tools">
+	   <ItemGroup>
+		   <Tools Include="tools\ConicProj"/>
+		   <Tools Include="tools\GeoConvert"/>
+		   <Tools Include="tools\GeodesicProj"/>
+		   <Tools Include="tools\GeodesicProj"/>
+		   <Tools Include="tools\GeodSolve"/>
+		   <Tools Include="tools\GeoidEval"/>
+		   <Tools Include="tools\Gravity"/>
+		   <Tools Include="tools\IntersectTool"/>
+		   <Tools Include="tools\MagneticField"/>
+		   <Tools Include="tools\Planimeter"/>
+		   <Tools Include="tools\RhumbSolve"/>
+		   <Tools Include="tools\TransverseMercatorProj"/>
+	   </ItemGroup>
+	   <MSBuild Projects="geographiclib.sln" Properties="Configuration=Release;Platform=x64" 
+				Targets="@(Tools)" BuildInParallel="true"/>
+	</Target>
+</Project>

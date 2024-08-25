@@ -1,0 +1,16 @@
+{
+  "name": "geographiclib",
+  "git": "git@github.com:neacsum/geographiclib.git",
+  "https": "https://github.com/neacsum/geographiclib.git",
+  "build": [
+    {"os": "windows", "cmd": "build.bat", "args": ["lib"]},
+    {"os": "linux", "cmd": "cmake", "args": ["--workflow", "--preset", "x64"]}
+  ], 
+  "depends": [
+    {
+      "name": "utpp",
+      "git": "git@github.com:neacsum/utpp.git",
+      "https": "https://github.com/neacsum/utpp.git"
+    }
+  ]
+}

@@ -82,21 +82,20 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT GravityModel {
   private:
-    typedef Math::real real;
     friend class GravityCircle;
     static const int idlength_ = 8;
-    std::string _name, _dir, _description, _date, _filename, _id;
-    real _amodel, _gGMmodel, _zeta0, _corrmult;
-    int _nmx, _mmx;
-    SphericalHarmonic::normalization _norm;
-    NormalGravity _earth;
-    std::vector<real> _cCx, _sSx, _cCC, _cCS, _zonal;
-    real _dzonal0;              // A left over contribution to _zonal.
-    SphericalHarmonic _gravitational;
-    SphericalHarmonic1 _disturbing;
-    SphericalHarmonic _correction;
+    std::string name_, dir_, description_, date_, filename_, id_;
+    real amodel_, gGMmodel_, zeta0_, corrmult_;
+    int nmx_, mmx_;
+    SphericalHarmonic::normalization norm_;
+    NormalGravity earth_;
+    std::vector<real> cCx_, sSx_, cCC_, cCS_, zonal_;
+    real dzonal0_;              // A left over contribution to zonal_.
+    SphericalHarmonic gravitational_;
+    SphericalHarmonic1 disturbing_;
+    SphericalHarmonic correction_;
     void ReadMetadata(const std::string& name);
-    Math::real InternalT(real X, real Y, real Z,
+    real InternalT(real X, real Y, real Z,
                          real& deltaX, real& deltaY, real& deltaZ,
                          bool gradp, bool correct) const;
     GravityModel(const GravityModel&) = delete; // copy constructor not allowed
@@ -216,7 +215,7 @@ namespace GeographicLib {
      *
      * The function includes the effects of the earth's rotation.
      **********************************************************************/
-    Math::real Gravity(real lat, real lon, real h,
+    real Gravity(real lat, real lon, real h,
                        real& gx, real& gy, real& gz) const;
 
     /**
@@ -235,7 +234,7 @@ namespace GeographicLib {
      * @return \e T the corresponding disturbing potential
      *   (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real Disturbance(real lat, real lon, real h,
+    real Disturbance(real lat, real lon, real h,
                            real& deltax, real& deltay, real& deltaz)
       const;
 
@@ -252,7 +251,7 @@ namespace GeographicLib {
      * results of the NGA codes are reproduced accurately.  Details are given
      * in \ref gravitygeoid.
      **********************************************************************/
-    Math::real GeoidHeight(real lat, real lon) const;
+    real GeoidHeight(real lat, real lon) const;
 
     /**
      * Evaluate the components of the gravity anomaly vector using the
@@ -296,7 +295,7 @@ namespace GeographicLib {
      *
      * This calls NormalGravity::U for ReferenceEllipsoid().
      **********************************************************************/
-    Math::real W(real X, real Y, real Z,
+    real W(real X, real Y, real Z,
                  real& gX, real& gY, real& gZ) const;
 
     /**
@@ -315,7 +314,7 @@ namespace GeographicLib {
      * @return \e V = \e W - &Phi; the gravitational potential
      *   (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real V(real X, real Y, real Z,
+    real V(real X, real Y, real Z,
                  real& GX, real& GY, real& GZ) const;
 
     /**
@@ -334,7 +333,7 @@ namespace GeographicLib {
      * @return \e T = \e W - \e U the disturbing potential (also called the
      *   anomalous potential) (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real T(real X, real Y, real Z,
+    real T(real X, real Y, real Z,
                  real& deltaX, real& deltaY, real& deltaZ) const
     { return InternalT(X, Y, Z, deltaX, deltaY, deltaZ, true, true); }
 
@@ -347,7 +346,7 @@ namespace GeographicLib {
      * @return \e T = \e W - \e U the disturbing potential (also called the
      *   anomalous potential) (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real T(real X, real Y, real Z) const {
+    real T(real X, real Y, real Z) const {
       real dummy;
       return InternalT(X, Y, Z, dummy, dummy, dummy, false, true);
     }
@@ -371,9 +370,9 @@ namespace GeographicLib {
      *
      * This calls NormalGravity::U for ReferenceEllipsoid().
      **********************************************************************/
-    Math::real U(real X, real Y, real Z,
+    real U(real X, real Y, real Z,
                  real& gammaX, real& gammaY, real& gammaZ) const
-    { return _earth.U(X, Y, Z, gammaX, gammaY, gammaZ); }
+    { return earth_.U(X, Y, Z, gammaX, gammaY, gammaZ); }
 
     /**
      * Evaluate the centrifugal acceleration in geocentric coordinates.
@@ -389,8 +388,8 @@ namespace GeographicLib {
      *
      * This calls NormalGravity::Phi for ReferenceEllipsoid().
      **********************************************************************/
-    Math::real Phi(real X, real Y, real& fX, real& fY) const
-    { return _earth.Phi(X, Y, fX, fY); }
+    real Phi(real X, real Y, real& fX, real& fY) const
+    { return earth_.Phi(X, Y, fX, fY); }
     ///@}
 
     /** \name Compute gravity on a circle of constant latitude
@@ -438,39 +437,39 @@ namespace GeographicLib {
     /**
      * @return the NormalGravity object for the reference ellipsoid.
      **********************************************************************/
-    const NormalGravity& ReferenceEllipsoid() const { return _earth; }
+    const NormalGravity& ReferenceEllipsoid() const { return earth_; }
 
     /**
      * @return the description of the gravity model, if available, in the data
      *   file; if absent, return "NONE".
      **********************************************************************/
-    const std::string& Description() const { return _description; }
+    const std::string& Description() const { return description_; }
 
     /**
      * @return date of the model; if absent, return "UNKNOWN".
      **********************************************************************/
-    const std::string& DateTime() const { return _date; }
+    const std::string& DateTime() const { return date_; }
 
     /**
      * @return full file name used to load the gravity model.
      **********************************************************************/
-    const std::string& GravityFile() const { return _filename; }
+    const std::string& GravityFile() const { return filename_; }
 
     /**
      * @return "name" used to load the gravity model (from the first argument
      *   of the constructor, but this may be overridden by the model file).
      **********************************************************************/
-    const std::string& GravityModelName() const { return _name; }
+    const std::string& GravityModelName() const { return name_; }
 
     /**
      * @return directory used to load the gravity model.
      **********************************************************************/
-    const std::string& GravityModelDirectory() const { return _dir; }
+    const std::string& GravityModelDirectory() const { return dir_; }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e GM the mass constant of the model (m<sup>3</sup>
@@ -478,36 +477,36 @@ namespace GeographicLib {
      *   constant and \e M the mass of the earth (usually including the mass of
      *   the earth's atmosphere).
      **********************************************************************/
-    Math::real MassConstant() const { return _gGMmodel; }
+    real MassConstant() const { return gGMmodel_; }
 
     /**
      * @return \e GM the mass constant of the ReferenceEllipsoid()
      *   (m<sup>3</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real ReferenceMassConstant() const
-    { return _earth.MassConstant(); }
+    real ReferenceMassConstant() const
+    { return earth_.MassConstant(); }
 
     /**
      * @return &omega; the angular velocity of the model and the
      *   ReferenceEllipsoid() (rad s<sup>&minus;1</sup>).
      **********************************************************************/
-    Math::real AngularVelocity() const
-    { return _earth.AngularVelocity(); }
+    real AngularVelocity() const
+    { return earth_.AngularVelocity(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
 
     /**
      * @return \e Nmax the maximum degree of the components of the model.
      **********************************************************************/
-    int Degree() const { return _nmx; }
+    int Degree() const { return nmx_; }
 
     /**
      * @return \e Mmax the maximum order of the components of the model.
      **********************************************************************/
-    int Order() const { return _mmx; }
+    int Order() const { return mmx_; }
     ///@}
 
     /**

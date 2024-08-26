@@ -28,16 +28,16 @@ namespace GeographicLib {
   AuxAngle AuxAngle::normalized() const {
     using std::isnan;           // Needed for Centos 7, ubuntu 14
     if ( isnan( tan() ) ||
-         (fabs(_y) > numeric_limits<real>::max()/2 &&
-          fabs(_x) > numeric_limits<real>::max()/2) )
+         (fabs(y_) > numeric_limits<real>::max()/2 &&
+          fabs(x_) > numeric_limits<real>::max()/2) )
       // deal with
       // (0,0), (inf,inf), (nan,nan), (nan,x), (y,nan), (toobig,toobig)
       return NaN();
-    real r = hypot(_y, _x),
-      y = _y/r, x = _x/r;
+    real r = hypot(y_, x_),
+      y = y_/r, x = x_/r;
     // deal with r = inf, then one of y,x becomes 1
-    if (isnan(y)) y = copysign(real(1), _y);
-    if (isnan(x)) x = copysign(real(1), _x);
+    if (isnan(y)) y = copysign(real(1), y_);
+    if (isnan(x)) x = copysign(real(1), x_);
     return AuxAngle(y, x);
   }
 
@@ -48,9 +48,9 @@ namespace GeographicLib {
   AuxAngle& AuxAngle::operator+=(const AuxAngle& p) {
     // Do nothing if p.tan() == 0 to preserve signs of y() and x()
     if (p.tan() != 0) {
-      real x = _x * p._x - _y * p._y;
-      _y = _y * p._x + _x * p._y;
-      _x = x;
+      real x = x_ * p.x_ - y_ * p.y_;
+      y_ = y_ * p.x_ + x_ * p.y_;
+      x_ = x;
     }
     return *this;
   }

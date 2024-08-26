@@ -1,6 +1,6 @@
 /**
  * \file Constants.hpp
- * \brief Header for GeographicLib::Constants class
+ * \brief Header for GeographicLib::Constants namespace
  *
  * Copyright (c) Charles Karney (2008-2024) <karney@alum.mit.edu> and licensed
  * under the MIT/X11 License.  For more information, see
@@ -104,73 +104,128 @@ namespace GeographicLib {
    * Example of use:
    * \include examples/Constants.cpp
    **********************************************************************/
-  class GEOGRAPHICLIB_EXPORT Constants {
-  private:
-    typedef Math::real real;
-    Constants() = delete;       // Disable constructor
+  namespace Constants {
 
-  public:
     /**
      * A synonym for Math::degree<real>().
      **********************************************************************/
-    static Math::real degree() { return Math::degree(); }
+    inline real degree() { return Math::degree(); }
     /**
      * @return the number of radians in an arcminute.
      **********************************************************************/
-    static Math::real arcminute()
-    { return Math::degree() / Math::dm; }
+    inline real arcminute()
+    { return Math::degree() / 60; }
     /**
      * @return the number of radians in an arcsecond.
      **********************************************************************/
-    static Math::real arcsecond()
-    { return Math::degree() / Math::ds; }
+    inline real arcsecond()
+    { return Math::degree() / 3600; }
 
-    /** \name Ellipsoid parameters
+    /** \name SI units
      **********************************************************************/
     ///@{
     /**
      * @tparam T the type of the returned value.
-     * @return the equatorial radius of WGS84 ellipsoid (6378137 m).
+     * @return the number of meters in a meter.
+     *
+     * This is unity, but this lets the internal system of units be changed if
+     * necessary.
      **********************************************************************/
-    template<typename T = real> static T WGS84_a()
-    { return 6378137 * meter<T>(); }
+    template<typename T = real> T meter() { return T(1); }
+    /**
+     * @return the number of meters in a kilometer.
+     **********************************************************************/
+    inline real kilometer()
+    { return 1000 * meter<real>(); }
+    /**
+     * @return the number of meters in a nautical mile (approximately 1 arc
+     *   minute)
+     **********************************************************************/
+    inline real nauticalmile()
+    { return 1852 * meter<real>(); }
+
+    /**
+     * @tparam T the type of the returned value.
+     * @return the number of square meters in a square meter.
+     *
+     * This is unity, but this lets the internal system of units be changed if
+     * necessary.
+     **********************************************************************/
+    template<typename T = real> T square_meter()
+    { return meter<T>() * meter<T>(); }
+    /**
+     * @return the number of square meters in a hectare.
+     **********************************************************************/
+    inline real hectare()
+    { return 10000 * square_meter<real>(); }
+    /**
+     * @return the number of square meters in a square kilometer.
+     **********************************************************************/
+    inline real square_kilometer()
+    { return kilometer() * kilometer(); }
+    /**
+     * @return the number of square meters in a square nautical mile.
+     **********************************************************************/
+    inline real square_nauticalmile()
+    { return nauticalmile() * nauticalmile(); }
+    ///@}
+
+    /** \name Ellipsoid parameters
+     **********************************************************************/
+     ///@{
+     /**
+      * @tparam T the type of the returned value.
+      * @return the equatorial radius of WGS84 ellipsoid (6378137 m).
+      **********************************************************************/
+    template<typename T = real> T WGS84_a ()
+    {
+      return 6378137 * meter<T> ();
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the flattening of WGS84 ellipsoid (1/298.257223563).
      **********************************************************************/
-    template<typename T = real> static T WGS84_f() {
+    template<typename T = real> T WGS84_f () {
       // Evaluating this as 1000000000 / T(298257223563LL) reduces the
       // round-off error by about 10%.  However, expressing the flattening as
       // 1/298.257223563 is well ingrained.
-      return 1 / ( T(298257223563LL) / 1000000000 );
+      return 1 / (T (298257223563LL) / 1000000000);
     }
     /**
      * @tparam T the type of the returned value.
      * @return the gravitational constant of the WGS84 ellipsoid, \e GM, in
      *   m<sup>3</sup> s<sup>&minus;2</sup>.
      **********************************************************************/
-    template<typename T = real> static T WGS84_GM()
-    { return T(3986004) * 100000000 + 41800000; }
+    template<typename T = real> T WGS84_GM ()
+    {
+      return T (3986004) * 100000000 + 41800000;
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the angular velocity of the WGS84 ellipsoid, &omega;, in rad
      *   s<sup>&minus;1</sup>.
      **********************************************************************/
-    template<typename T = real> static T WGS84_omega()
-    { return 7292115 / (T(1000000) * 100000); }
+    template<typename T = real> T WGS84_omega ()
+    {
+      return 7292115 / (T (1000000) * 100000);
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the equatorial radius of GRS80 ellipsoid, \e a, in m.
      **********************************************************************/
-    template<typename T = real> static T GRS80_a()
-    { return 6378137 * meter<T>(); }
+    template<typename T = real> T GRS80_a ()
+    {
+      return 6378137 * meter<T> ();
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the gravitational constant of the GRS80 ellipsoid, \e GM, in
      *   m<sup>3</sup> s<sup>&minus;2</sup>.
      **********************************************************************/
-    template<typename T = real> static T GRS80_GM()
-    { return T(3986005) * 100000000; }
+    template<typename T = real> T GRS80_GM ()
+    {
+      return T (3986005) * 100000000;
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the angular velocity of the GRS80 ellipsoid, &omega;, in rad
@@ -183,76 +238,35 @@ namespace GeographicLib {
      * approximation (because the Gregorian year includes the precession of the
      * earth's axis).
      **********************************************************************/
-    template<typename T = real> static T GRS80_omega()
-    { return 7292115 / (T(1000000) * 100000); }
+    template<typename T = real> T GRS80_omega ()
+    {
+      return 7292115 / (T (1000000) * 100000);
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the dynamical form factor of the GRS80 ellipsoid,
      *   <i>J</i><sub>2</sub>.
      **********************************************************************/
-    template<typename T = real> static T GRS80_J2()
-    { return T(108263) / 100000000; }
+    template<typename T = real> T GRS80_J2 ()
+    {
+      return T (108263) / 100000000;
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the central scale factor for UTM (0.9996).
      **********************************************************************/
-    template<typename T = real> static T UTM_k0()
-    {return T(9996) / 10000; }
+    template<typename T = real> T UTM_k0 ()
+    {
+      return T (9996) / 10000;
+    }
     /**
      * @tparam T the type of the returned value.
      * @return the central scale factor for UPS (0.994).
      **********************************************************************/
-    template<typename T = real> static T UPS_k0()
-    { return T(994) / 1000; }
-    ///@}
-
-    /** \name SI units
-     **********************************************************************/
-    ///@{
-    /**
-     * @tparam T the type of the returned value.
-     * @return the number of meters in a meter.
-     *
-     * This is unity, but this lets the internal system of units be changed if
-     * necessary.
-     **********************************************************************/
-    template<typename T = real> static T meter() { return T(1); }
-    /**
-     * @return the number of meters in a kilometer.
-     **********************************************************************/
-    static Math::real kilometer()
-    { return 1000 * meter<real>(); }
-    /**
-     * @return the number of meters in a nautical mile (approximately 1 arc
-     *   minute)
-     **********************************************************************/
-    static Math::real nauticalmile()
-    { return 1852 * meter<real>(); }
-
-    /**
-     * @tparam T the type of the returned value.
-     * @return the number of square meters in a square meter.
-     *
-     * This is unity, but this lets the internal system of units be changed if
-     * necessary.
-     **********************************************************************/
-    template<typename T = real> static T square_meter()
-    { return meter<T>() * meter<T>(); }
-    /**
-     * @return the number of square meters in a hectare.
-     **********************************************************************/
-    static Math::real hectare()
-    { return 10000 * square_meter<real>(); }
-    /**
-     * @return the number of square meters in a square kilometer.
-     **********************************************************************/
-    static Math::real square_kilometer()
-    { return kilometer() * kilometer(); }
-    /**
-     * @return the number of square meters in a square nautical mile.
-     **********************************************************************/
-    static Math::real square_nauticalmile()
-    { return nauticalmile() * nauticalmile(); }
+    template<typename T = real> T UPS_k0 ()
+    {
+      return T (994) / 1000;
+    }
     ///@}
 
     /** \name Anachronistic British units
@@ -261,36 +275,36 @@ namespace GeographicLib {
     /**
      * @return the number of meters in an international foot.
      **********************************************************************/
-    static Math::real foot()
+    inline real foot()
     { return real(254 * 12) / 10000 * meter<real>(); }
     /**
      * @return the number of meters in a yard.
      **********************************************************************/
-    static Math::real yard() { return 3 * foot(); }
+    inline real yard() { return 3 * foot(); }
     /**
      * @return the number of meters in a fathom.
      **********************************************************************/
-    static Math::real fathom() { return 2 * yard(); }
+    inline real fathom() { return 2 * yard(); }
     /**
      * @return the number of meters in a chain.
      **********************************************************************/
-    static Math::real chain() { return 22 * yard(); }
+    inline real chain() { return 22 * yard(); }
     /**
      * @return the number of meters in a furlong.
      **********************************************************************/
-    static Math::real furlong() { return 10 * chain(); }
+    inline real furlong() { return 10 * chain(); }
     /**
      * @return the number of meters in a statute mile.
      **********************************************************************/
-    static Math::real mile() { return 8 * furlong(); }
+    inline real mile() { return 8 * furlong(); }
     /**
      * @return the number of square meters in an acre.
      **********************************************************************/
-    static Math::real acre() { return chain() * furlong(); }
+    inline real acre() { return chain() * furlong(); }
     /**
      * @return the number of square meters in a square statute mile.
      **********************************************************************/
-    static Math::real square_mile() { return mile() * mile(); }
+    inline real square_mile() { return mile() * mile(); }
     ///@}
 
     /** \name Anachronistic US units
@@ -299,10 +313,10 @@ namespace GeographicLib {
     /**
      * @return the number of meters in a US survey foot.
      **********************************************************************/
-    static Math::real surveyfoot()
+    inline real surveyfoot()
     { return real(1200) / 3937 * meter<real>(); }
     ///@}
-  };
+  } //end namespace
 
   /**
    * \brief Exception handling for %GeographicLib

@@ -69,14 +69,12 @@ namespace GeographicLib {
    **********************************************************************/
 
   class GEOGRAPHICLIB_EXPORT Intersect {
-  private:
-    typedef Math::real real;
   public:
     /**
      * The type used to hold the two displacement along the geodesics.  This is
      * just a std::pair with \e x = \e first and \e y = \e second.
      **********************************************************************/
-    typedef std::pair<Math::real, Math::real> Point;
+    typedef std::pair<real, real> Point;
     /**
      * The minimum capabilities for GeodesicLine objects which are passed to
      * this class.
@@ -86,30 +84,30 @@ namespace GeographicLib {
       Geodesic::DISTANCE_IN;
   private:
     static const int numit_ = 100;
-    const Geodesic _geod;
-    real _a, _f,                // equatorial radius, flattening
-      _rR,                      // authalic radius
-      _d,                       // pi*_rR
-      _eps,                     // criterion for intersection + coincidence
-      _tol,                     // convergence for Newton in Solve1
-      _delta,                   // for equality tests, safety margin for tiling
-      _t1,                      // min distance between intersections
-      _t2,                      // furthest dist to closest intersection
-      _t3,                      // 1/2 furthest min dist to next intersection
-      _t4,                      // capture radius for spherical sol in Solve0
-      _t5,                      // longest shortest geodesic
-      _d1,                      // tile spacing for Closest
-      _d2,                      // tile spacing for Next
-      _d3;                      // tile spacing for All
+    const Geodesic geod_;
+    real a_, f_,                // equatorial radius, flattening
+      rR_,                      // authalic radius
+      d_,                       // pi*rR_
+      eps_,                     // criterion for intersection + coincidence
+      tol_,                     // convergence for Newton in Solve1
+      delta_,                   // for equality tests, safety margin for tiling
+      t1_,                      // min distance between intersections
+      t2_,                      // furthest dist to closest intersection
+      t3_,                      // 1/2 furthest min dist to next intersection
+      t4_,                      // capture radius for spherical sol in Solve0
+      t5_,                      // longest shortest geodesic
+      d1_,                      // tile spacing for Closest
+      d2_,                      // tile spacing for Next
+      d3_;                      // tile spacing for All
     // The L1 distance
-    static Math::real d1(Math::real x, Math::real y)
+    static real d1(real x, real y)
     { using std::fabs; return fabs(x) + fabs(y); }
     // An internal version of Point with a little more functionality
     class XPoint {
     public:
       real x, y;
       int c;
-      XPoint(Math::real x, Math::real y, int c = 0)
+      XPoint(real x, real y, int c = 0)
         : x(x), y(y), c(c)
       {}
       XPoint()
@@ -126,8 +124,8 @@ namespace GeographicLib {
       XPoint operator+(const XPoint& p) const {
         XPoint t = *this; t += p; return t;
       }
-      Math::real Dist() const { return d1(x, y); }
-      Math::real Dist(const XPoint& p) const { return d1(x - p.x, y - p.y); }
+      real Dist() const { return d1(x, y); }
+      real Dist(const XPoint& p) const { return d1(x - p.x, y - p.y); }
       Point data() const { return Point(x, y); }
     };
     // Comparing XPoints for insertions into sets, but ensure that close
@@ -136,7 +134,7 @@ namespace GeographicLib {
     private:
       const real _delta;
     public:
-      SetComp(Math::real delta) : _delta(delta) {}
+      SetComp(real delta) : _delta(delta) {}
       bool eq(const XPoint& p, const XPoint& q) const {
         return d1(p.x - q.x, p.y - q.y) <= _delta;
       }
@@ -176,31 +174,31 @@ namespace GeographicLib {
     // All intersectons
     std::vector<XPoint>
     AllInt0(const GeodesicLine& lineX, const GeodesicLine& lineY,
-           Math::real maxdist, const XPoint& p0) const;
+           real maxdist, const XPoint& p0) const;
     std::vector<Point>
     AllInternal(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                Math::real maxdist, const Point& p0,
+                real maxdist, const Point& p0,
                 std::vector<int>& c, bool cp) const;
     // Find {semi-,}conjugate point which is close to s3.  Optional m12, M12,
     // M21 use {semi-,}conjugacy relative to point 2
-    Math::real ConjugateDist(const GeodesicLine& line, Math::real s3, bool semi,
-                             Math::real m12 = 0, Math::real M12 = 1,
-                             Math::real M21 = 1) const;
-    Math::real distpolar(Math::real lat1, Math::real* lat2 = nullptr) const;
-    Math::real polarb(Math::real* lata = nullptr, Math::real* latb = nullptr)
+    real ConjugateDist(const GeodesicLine& line, real s3, bool semi,
+                             real m12 = 0, real M12 = 1,
+                             real M21 = 1) const;
+    real distpolar(real lat1, real* lat2 = nullptr) const;
+    real polarb(real* lata = nullptr, real* latb = nullptr)
       const;
-    Math::real conjdist(Math::real azi, Math::real* ds = nullptr,
-                        Math::real* sp = nullptr, Math::real* sm = nullptr)
+    real conjdist(real azi, real* ds = nullptr,
+                        real* sp = nullptr, real* sm = nullptr)
       const;
-    Math::real distoblique(Math::real* azi = nullptr, Math::real* sp = nullptr,
-                           Math::real* sm = nullptr) const;
+    real distoblique(real* azi = nullptr, real* sp = nullptr,
+                           real* sm = nullptr) const;
     // p is intersection point on coincident lines orientation = c; p0 is
     // origin point.  Change p to center point wrt p0, i.e, abs((p-p0)_x) =
     // abs((p-p0)_y)
     static XPoint fixcoincident(const XPoint& p0, const XPoint& p);
     static XPoint fixcoincident(const XPoint& p0, const XPoint& p, int c);
-    static XPoint fixsegment(Math::real sx, Math::real sy, const XPoint& p);
-    static int segmentmode(Math::real sx, Math::real sy, const XPoint& p) {
+    static XPoint fixsegment(real sx, real sy, const XPoint& p);
+    static int segmentmode(real sx, real sy, const XPoint& p) {
       return (p.x < 0 ? -1 : p.x <= sx ? 0 : 1) * 3
         + (p.y < 0 ? -1 : p.y <= sy ? 0 : 1);
     }
@@ -248,8 +246,8 @@ namespace GeographicLib {
      *
      * The returned intersection minimizes Intersect::Dist(\e p, \e p0).
      **********************************************************************/
-    Point Closest(Math::real latX, Math::real lonX, Math::real aziX,
-                  Math::real latY, Math::real lonY, Math::real aziY,
+    Point Closest(real latX, real lonX, real aziX,
+                  real latY, real lonY, real aziY,
                   const Point& p0 = Point(0, 0), int* c = nullptr) const;
     /**
      * Find the closest intersection point, with each geodesic given as a
@@ -304,10 +302,10 @@ namespace GeographicLib {
      * and similarly for segment \e Y.  Then
      * \e segmode = 3 \e k<sub><i>x</i></sub> + \e k<sub><i>y</i></sub>.
      **********************************************************************/
-    Point Segment(Math::real latX1, Math::real lonX1,
-                  Math::real latX2, Math::real lonX2,
-                  Math::real latY1, Math::real lonY1,
-                  Math::real latY2, Math::real lonY2,
+    Point Segment(real latX1, real lonX1,
+                  real latX2, real lonX2,
+                  real latY1, real lonY1,
+                  real latY2, real lonY2,
                   int& segmode, int* c = nullptr) const;
     /**
      * Find the intersection of two geodesic segments each defined by a
@@ -356,8 +354,8 @@ namespace GeographicLib {
      * this may be a problem, use Intersect::All with a sufficiently large \e
      * maxdist to capture close intersections.
      **********************************************************************/
-    Point Next(Math::real latX, Math::real lonX,
-               Math::real aziX, Math::real aziY, int* c = nullptr) const;
+    Point Next(real latX, real lonX,
+               real aziX, real aziY, int* c = nullptr) const;
     /**
      * Find the next closest intersection point to a given intersection,
      *   with each geodesic specified a GeodesicLine.
@@ -408,9 +406,9 @@ namespace GeographicLib {
      * maxdist.  The vector of returned intersections is sorted on the distance
      * from \e p0.
      **********************************************************************/
-    std::vector<Point> All(Math::real latX, Math::real lonX, Math::real aziX,
-                           Math::real latY, Math::real lonY, Math::real aziY,
-                           Math::real maxdist, std::vector<int>& c,
+    std::vector<Point> All(real latX, real lonX, real aziX,
+                           real latY, real lonY, real aziY,
+                           real maxdist, std::vector<int>& c,
                            const Point& p0 = Point(0, 0))
       const;
     /**
@@ -434,9 +432,9 @@ namespace GeographicLib {
      * maxdist.  The vector of returned intersections is sorted on the distance
      * from \e p0.
      **********************************************************************/
-    std::vector<Point> All(Math::real latX, Math::real lonX, Math::real aziX,
-                           Math::real latY, Math::real lonY, Math::real aziY,
-                           Math::real maxdist, const Point& p0 = Point(0, 0))
+    std::vector<Point> All(real latX, real lonX, real aziX,
+                           real latY, real lonY, real aziY,
+                           real maxdist, const Point& p0 = Point(0, 0))
       const;
     /**
      * Find all intersections within a certain distance, with each geodesic
@@ -460,7 +458,7 @@ namespace GeographicLib {
      * all these capabilities by default.
      **********************************************************************/
     std::vector<Point> All(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                           Math::real maxdist, std::vector<int>& c,
+                           real maxdist, std::vector<int>& c,
                            const Point& p0 = Point(0, 0))
       const;
     /**
@@ -484,7 +482,7 @@ namespace GeographicLib {
      * all these capabilities by default.
      **********************************************************************/
     std::vector<Point> All(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                           Math::real maxdist, const Point& p0 = Point(0, 0))
+                           real maxdist, const Point& p0 = Point(0, 0))
       const;
     ///@}
 
@@ -560,7 +558,7 @@ namespace GeographicLib {
      * Geodesic::Flattening(), Geodesic::Exact(), and
      * Geodesic::EllipsoidArea().
      **********************************************************************/
-    const Geodesic& GeodesicObject() const  { return _geod; }
+    const Geodesic& GeodesicObject() const  { return geod_; }
     ///@}
 
     /**
@@ -573,7 +571,7 @@ namespace GeographicLib {
      *  |<i>p</i><sub><i>x</i></sub> &minus; <i>p0</i><sub><i>x</i></sub>| +
      *  |<i>p</i><sub><i>y</i></sub> &minus; <i>p0</i><sub><i>y</i></sub>|.
      **********************************************************************/
-    static Math::real Dist(const Point& p, const Point& p0 = Point(0, 0)) {
+    static real Dist(const Point& p, const Point& p0 = Point(0, 0)) {
       using std::fabs;
       return fabs(p.first - p0.first) + fabs(p.second - p0.second);
     }

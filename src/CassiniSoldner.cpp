@@ -14,21 +14,21 @@ namespace GeographicLib {
   using namespace std;
 
   CassiniSoldner::CassiniSoldner(const Geodesic& earth)
-    : _earth(earth) {}
+    : earth_(earth) {}
 
   CassiniSoldner::CassiniSoldner(real lat0, real lon0, const Geodesic& earth)
-    : _earth(earth)
+    : earth_(earth)
   { Reset(lat0, lon0); }
 
   void CassiniSoldner::Reset(real lat0, real lon0) {
-    _meridian = _earth.Line(lat0, lon0, real(0),
+    meridian_ = earth_.Line(lat0, lon0, real(0),
                             Geodesic::LATITUDE | Geodesic::LONGITUDE |
                             Geodesic::DISTANCE | Geodesic::DISTANCE_IN |
                             Geodesic::AZIMUTH);
-    real f = _earth.Flattening();
-    Math::sincosd(LatitudeOrigin(), _sbet0, _cbet0);
-    _sbet0 *= (1 - f);
-    Math::norm(_sbet0, _cbet0);
+    real f = earth_.Flattening();
+    Math::sincosd(LatitudeOrigin(), sbet0_, cbet0_);
+    sbet0_ *= (1 - f);
+    Math::norm(sbet0_, cbet0_);
   }
 
   void CassiniSoldner::Forward(real lat, real lon, real& x, real& y,
@@ -37,17 +37,17 @@ namespace GeographicLib {
       return;
     real dlon = Math::AngDiff(LongitudeOrigin(), lon);
     real sig12, s12, azi1, azi2;
-    sig12 = _earth.Inverse(lat, -fabs(dlon), lat, fabs(dlon), s12, azi1, azi2);
+    sig12 = earth_.Inverse(lat, -fabs(dlon), lat, fabs(dlon), s12, azi1, azi2);
     sig12 *= real(0.5);
     s12 *= real(0.5);
     if (s12 == 0) {
       real da = Math::AngDiff(azi1, azi2)/2;
-      if (fabs(dlon) <= Math::qd) {
-        azi1 = Math::qd - da;
-        azi2 = Math::qd + da;
+      if (fabs(dlon) <= 90) {
+        azi1 = 90 - da;
+        azi2 = 90 + da;
       } else {
-        azi1 = -Math::qd - da;
-        azi2 = -Math::qd + da;
+        azi1 = -90 - da;
+        azi2 = -90 + da;
       }
     }
     if (signbit(dlon)) {
@@ -57,7 +57,7 @@ namespace GeographicLib {
     }
     x = s12;
     azi = Math::AngNormalize(azi2);
-    GeodesicLine perp(_earth.Line(lat, dlon, azi, Geodesic::GEODESICSCALE));
+    GeodesicLine perp(earth_.Line(lat, dlon, azi, Geodesic::GEODESICSCALE));
     real t;
     perp.GenPosition(true, -sig12,
                      Geodesic::GEODESICSCALE,
@@ -67,11 +67,11 @@ namespace GeographicLib {
     Math::sincosd(perp.EquatorialAzimuth(), salp0, calp0);
     real
       sbet1 = lat >=0 ? calp0 : -calp0,
-      cbet1 = fabs(dlon) <= Math::qd ? fabs(salp0) : -fabs(salp0),
-      sbet01 = sbet1 * _cbet0 - cbet1 * _sbet0,
-      cbet01 = cbet1 * _cbet0 + sbet1 * _sbet0,
+      cbet1 = fabs(dlon) <= 90 ? fabs(salp0) : -fabs(salp0),
+      sbet01 = sbet1 * cbet0_ - cbet1 * sbet0_,
+      cbet01 = cbet1 * cbet0_ + sbet1 * sbet0_,
       sig01 = atan2(sbet01, cbet01) / Math::degree();
-    _meridian.GenPosition(true, sig01,
+    meridian_.GenPosition(true, sig01,
                           Geodesic::DISTANCE,
                           t, t, t, y, t, t, t, t);
   }
@@ -82,8 +82,8 @@ namespace GeographicLib {
       return;
     real lat1, lon1;
     real azi0, t;
-    _meridian.Position(y, lat1, lon1, azi0);
-    _earth.Direct(lat1, lon1, azi0 + Math::qd, x, lat, lon, azi, rk, t);
+    meridian_.Position(y, lat1, lon1, azi0);
+    earth_.Direct(lat1, lon1, azi0 + 90, x, lat, lon, azi, rk, t);
   }
 
 } // namespace GeographicLib

@@ -143,13 +143,13 @@ namespace GeographicLib {
 
   using namespace std;
 
-  vector<Math::real>& SphericalEngine::sqrttable() {
+  vector<real>& SphericalEngine::sqrttable() {
     static vector<real> sqrttable(0);
     return sqrttable;
   }
 
   template<bool gradp, SphericalEngine::normalization norm, int L>
-  Math::real SphericalEngine::Value(const coeff c[], const real f[],
+  real SphericalEngine::Value(const coeff c[], const real f[],
                                     real x, real y, real z, real a,
                                     real& gradx, real& grady, real& gradz)
     {
@@ -427,42 +427,42 @@ namespace GeographicLib {
   }
 
   /// \cond SKIP
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::FULL, 1>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::FULL, 1>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::SCHMIDT, 1>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::SCHMIDT, 1>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
 
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::FULL, 2>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::FULL, 2>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::SCHMIDT, 2>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::SCHMIDT, 2>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
 
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::FULL, 3>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::FULL, 3>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<true, SphericalEngine::SCHMIDT, 3>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
-  template Math::real GEOGRAPHICLIB_EXPORT
+  template real GEOGRAPHICLIB_EXPORT
   SphericalEngine::Value<false, SphericalEngine::SCHMIDT, 3>
   (const coeff[], const real[], real, real, real, real, real&, real&, real&);
 

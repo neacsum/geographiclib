@@ -174,7 +174,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Geodesic {
   private:
-    typedef Math::real real;
     friend class GeodesicLine;
     static const int nA1_ = GEOGRAPHICLIB_GEODESIC_ORDER;
     static const int nC1_ = GEOGRAPHICLIB_GEODESIC_ORDER;
@@ -209,11 +208,11 @@ namespace GeographicLib {
                              real sinx, real cosx, const real c[], int n);
     static real Astroid(real x, real y);
 
-    real _a, _f;
-    bool _exact;
-    real _f1, _e2, _ep2, _n, _b, _c2, _etol2;
-    real _aA3x[nA3x_], _cC3x[nC3x_], _cC4x[nC4x_];
-    GeodesicExact _geodexact;
+    real a_, f_;
+    bool exact_;
+    real f1_, e2_, ep2_, n_, b_, c2_, etol2_;
+    real aA3x_[nA3x_], cC3x_[nC3x_], cC4x_[nC4x_];
+    GeodesicExact geodexact_;
 
     void Lengths(real eps, real sig12,
                  real ssig1, real csig1, real dn1,
@@ -391,7 +390,7 @@ namespace GeographicLib {
      * which omit some of the output parameters.  Note, however, that the arc
      * length is always computed and returned as the function value.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2, real& azi2,
                       real& m12, real& M12, real& M21, real& S12)
       const {
@@ -405,7 +404,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Direct.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2)
       const {
       real t;
@@ -417,7 +416,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Direct.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2, real& azi2)
       const {
       real t;
@@ -429,7 +428,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Direct.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2, real& azi2, real& m12)
       const {
       real t;
@@ -441,7 +440,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Direct.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2, real& azi2,
                       real& M12, real& M21)
       const {
@@ -454,7 +453,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Direct.
      **********************************************************************/
-    Math::real Direct(real lat1, real lon1, real azi1, real s12,
+    real Direct(real lat1, real lon1, real azi1, real s12,
                       real& lat2, real& lon2, real& azi2,
                       real& m12, real& M12, real& M21)
       const {
@@ -641,7 +640,7 @@ namespace GeographicLib {
      * lon1 indicates how many times and in what sense the geodesic encircles
      * the ellipsoid.
      **********************************************************************/
-    Math::real GenDirect(real lat1, real lon1, real azi1,
+    real GenDirect(real lat1, real lon1, real azi1,
                          bool arcmode, real s12_a12, unsigned outmask,
                          real& lat2, real& lon2, real& azi2,
                          real& s12, real& m12, real& M12, real& M21,
@@ -686,7 +685,7 @@ namespace GeographicLib {
      * which omit some of the output parameters.  Note, however, that the arc
      * length is always computed and returned as the function value.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12, real& azi1, real& azi2, real& m12,
                        real& M12, real& M21, real& S12) const {
       return GenInverse(lat1, lon1, lat2, lon2,
@@ -698,7 +697,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12) const {
       real t;
       return GenInverse(lat1, lon1, lat2, lon2,
@@ -709,7 +708,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& azi1, real& azi2) const {
       real t;
       return GenInverse(lat1, lon1, lat2, lon2,
@@ -720,7 +719,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12, real& azi1, real& azi2)
       const {
       real t;
@@ -732,7 +731,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12, real& azi1, real& azi2, real& m12)
       const {
       real t;
@@ -744,7 +743,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12, real& azi1, real& azi2,
                        real& M12, real& M21) const {
       real t;
@@ -756,7 +755,7 @@ namespace GeographicLib {
     /**
      * See the documentation for Geodesic::Inverse.
      **********************************************************************/
-    Math::real Inverse(real lat1, real lon1, real lat2, real lon2,
+    real Inverse(real lat1, real lon1, real lat2, real lon2,
                        real& s12, real& azi1, real& azi2, real& m12,
                        real& M12, real& M21) const {
       real t;
@@ -803,7 +802,7 @@ namespace GeographicLib {
      * .
      * The arc length is always computed and returned as the function value.
      **********************************************************************/
-    Math::real GenInverse(real lat1, real lon1, real lat2, real lon2,
+    real GenInverse(real lat1, real lon1, real lat2, real lon2,
                           unsigned outmask,
                           real& s12, real& azi1, real& azi2,
                           real& m12, real& M12, real& M21, real& S12) const;
@@ -960,19 +959,19 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the  flattening of the ellipsoid.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return \e exact whether the exact formulation is used.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    bool Exact() const { return _exact; }
+    bool Exact() const { return exact_; }
 
     /**
      * @return total area of ellipsoid in meters<sup>2</sup>.  The area of a
@@ -980,8 +979,8 @@ namespace GeographicLib {
      *   Geodesic::EllipsoidArea()/2 to the sum of \e S12 for each side of the
      *   polygon.
      **********************************************************************/
-    Math::real EllipsoidArea() const
-    { return 4 * Math::pi() * _c2; }
+    real EllipsoidArea() const
+    { return 4 * Math::pi() * c2_; }
     ///@}
 
     /**

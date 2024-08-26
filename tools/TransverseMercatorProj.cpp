@@ -28,7 +28,6 @@ int usage (int retval, bool brief);
 int main(int argc, const char* const argv[]) {
   try {
     using namespace GeographicLib;
-    typedef Math::real real;
     Utility::set_digits();
     bool exact = true, extended = false, reverse = false, longfirst = false;
     real

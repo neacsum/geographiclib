@@ -73,7 +73,6 @@ namespace GeographicLib {
    * \include examples/AuxLatitude.cpp
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT AuxLatitude {
-    typedef Math::real real;
     AuxLatitude(const std::pair<real, real>& axes);
   public:
     /**
@@ -233,7 +232,7 @@ namespace GeographicLib {
      * accurate for abs(\e f) &le; 1/150; for other \e f, the exact method
      * should be used.
      **********************************************************************/
-    Math::real Convert(int auxin, int auxout, real zeta, bool exact = false)
+    real Convert(int auxin, int auxout, real zeta, bool exact = false)
       const;
     /**
      * Convert geographic latitude to an auxiliary latitude \e eta.
@@ -269,7 +268,7 @@ namespace GeographicLib {
      *   series [default false].
      * @return the rectifying radius in the same units as \e a.
      **********************************************************************/
-    Math::real RectifyingRadius(bool exact = false) const;
+    real RectifyingRadius(bool exact = false) const;
     /**
      * Return the authalic radius squared.
      *
@@ -277,19 +276,19 @@ namespace GeographicLib {
      *   series [default false].
      * @return the authalic radius squared in the same units as \e a.
      **********************************************************************/
-    Math::real AuthalicRadiusSquared(bool exact = false) const;
+    real AuthalicRadiusSquared(bool exact = false) const;
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
     /**
      * @return \e b the polar semi-axis of the ellipsoid (meters).
      **********************************************************************/
-    Math::real PolarSemiAxis() const { return _b; }
+    real PolarSemiAxis() const { return b_; }
     /**
      * @return \e f, the flattening of the ellipsoid.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
     /**
      * Use Clenshaw to sum a Fouier series.
      *
@@ -305,7 +304,7 @@ namespace GeographicLib {
      **********************************************************************/
     // Clenshaw applied to sum(c[k] * sin( (2*k+2) * zeta), i, 0, K-1);
     // if !sinp then subst sine->cosine.
-    static Math::real Clenshaw(bool sinp, real szeta, real czeta,
+    static real Clenshaw(bool sinp, real szeta, real czeta,
                          const real c[], int K);
     /**
      * The order of the series expansions.  This is set at compile time to
@@ -320,9 +319,6 @@ namespace GeographicLib {
      **********************************************************************/
     static const AuxLatitude& WGS84();
   private:
-    // Maximum number of iterations for Newton's method
-    static const int numit_ = 1000;
-    real tol_, bmin_, bmax_;       // Static consts for Newton's method
     // the function atanh(e * sphi)/e + sphi / (1 - (e * sphi)^2);
   protected:
     /**
@@ -372,9 +368,9 @@ namespace GeographicLib {
     AuxAngle Authalic(const AuxAngle& phi, real* diff = nullptr) const;
     /// \cond SKIP
     // Ellipsoid parameters
-    real _a, _b, _f, _fm1, _e2, _e2m1, _e12, _e12p1, _n, _e, _e1, _n2, _q;
+    real a_, b_, f_, fm1_, e2_, e2m1_, e12_, e12p1_, n_, e_, e1_, n2_, q_;
     // To hold computed Fourier coefficients
-    mutable real _c[Lmax * AUXNUMBER * AUXNUMBER];
+    mutable real c_[Lmax * AUXNUMBER * AUXNUMBER];
     // 1d index into AUXNUMBER x AUXNUMBER data
     static int ind(int auxout, int auxin) {
       return (auxout >= 0 && auxout < AUXNUMBER &&
@@ -389,7 +385,7 @@ namespace GeographicLib {
       using std::isinf; using std::copysign;
       return isinf(tphi) ? copysign(real(1), tphi) : tphi / sc(tphi);
     }
-    // Populate [_c[Lmax * k], _c[Lmax * (k + 1)])
+    // Populate [c_[Lmax * k], c_[Lmax * (k + 1)])
     void fillcoeff(int auxin, int auxout, int k) const;
     // the function atanh(e * sphi)/e; works for e^2 = 0 and e^2 < 0
     real atanhee(real tphi) const;

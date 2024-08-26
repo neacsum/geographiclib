@@ -48,19 +48,18 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT GeoCoords {
   private:
-    typedef Math::real real;
-    real _lat, _long, _easting, _northing, _gamma, _k;
-    bool _northp;
-    int _zone;                  // See UTMUPS::zonespec
-    mutable real _alt_easting, _alt_northing, _alt_gamma, _alt_k;
-    mutable int _alt_zone;
+    real lat_, long_, easting_, northing_, gamma_, k_;
+    bool northp_;
+    int zone_;                  // See UTMUPS::zonespec
+    mutable real alt_easting_, alt_northing_, alt_gamma_, alt_k_;
+    mutable int alt_zone_;
 
     void CopyToAlt() const {
-      _alt_easting = _easting;
-      _alt_northing = _northing;
-      _alt_gamma = _gamma;
-      _alt_k = _k;
-      _alt_zone = _zone;
+      alt_easting_ = easting_;
+      alt_northing_ = northing_;
+      alt_gamma_ = gamma_;
+      alt_k_ = k_;
+      alt_zone_ = zone_;
     }
     static void UTMUPSString(int zone, bool northp,
                              real easting, real northing,
@@ -75,14 +74,14 @@ namespace GeographicLib {
      * The default constructor sets the coordinate as undefined.
      **********************************************************************/
     GeoCoords()
-      : _lat(Math::NaN())
-      , _long(Math::NaN())
-      , _easting(Math::NaN())
-      , _northing(Math::NaN())
-      , _gamma(Math::NaN())
-      , _k(Math::NaN())
-      , _northp(false)
-      , _zone(UTMUPS::INVALID)
+      : lat_(Math::NaN())
+      , long_(Math::NaN())
+      , easting_(Math::NaN())
+      , northing_(Math::NaN())
+      , gamma_(Math::NaN())
+      , k_(Math::NaN())
+      , northp_(false)
+      , zone_(UTMUPS::INVALID)
     { CopyToAlt(); }
 
     /**
@@ -237,10 +236,10 @@ namespace GeographicLib {
      **********************************************************************/
     void Reset(real latitude, real longitude, int zone = UTMUPS::STANDARD) {
       UTMUPS::Forward(latitude, longitude,
-                      _zone, _northp, _easting, _northing, _gamma, _k,
+                      zone_, northp_, easting_, northing_, gamma_, k_,
                       zone);
-      _lat = latitude;
-      _long = Math::AngNormalize(longitude);
+      lat_ = latitude;
+      long_ = Math::AngNormalize(longitude);
       CopyToAlt();
     }
 
@@ -257,11 +256,11 @@ namespace GeographicLib {
      **********************************************************************/
     void Reset(int zone, bool northp, real easting, real northing) {
       UTMUPS::Reverse(zone, northp, easting, northing,
-                      _lat, _long, _gamma, _k);
-      _zone = zone;
-      _northp = northp;
-      _easting = easting;
-      _northing = northing;
+                      lat_, long_, gamma_, k_);
+      zone_ = zone;
+      northp_ = northp;
+      easting_ = easting;
+      northing_ = northing;
       FixHemisphere();
       CopyToAlt();
     }
@@ -273,47 +272,47 @@ namespace GeographicLib {
     /**
      * @return latitude (degrees)
      **********************************************************************/
-    Math::real Latitude() const { return _lat; }
+    real Latitude() const { return lat_; }
 
     /**
      * @return longitude (degrees)
      **********************************************************************/
-    Math::real Longitude() const { return _long; }
+    real Longitude() const { return long_; }
 
     /**
      * @return easting (meters)
      **********************************************************************/
-    Math::real Easting() const { return _easting; }
+    real Easting() const { return easting_; }
 
     /**
      * @return northing (meters)
      **********************************************************************/
-    Math::real Northing() const { return _northing; }
+    real Northing() const { return northing_; }
 
     /**
      * @return meridian convergence (degrees) for the UTM/UPS projection.
      **********************************************************************/
-    Math::real Convergence() const { return _gamma; }
+    real Convergence() const { return gamma_; }
 
     /**
      * @return scale for the UTM/UPS projection.
      **********************************************************************/
-    Math::real Scale() const { return _k; }
+    real Scale() const { return k_; }
 
     /**
      * @return hemisphere (false means south, true means north).
      **********************************************************************/
-    bool Northp() const { return _northp; }
+    bool Northp() const { return northp_; }
 
     /**
      * @return hemisphere letter n or s.
      **********************************************************************/
-    char Hemisphere() const { return _northp ? 'n' : 's'; }
+    char Hemisphere() const { return northp_ ? 'n' : 's'; }
 
     /**
      * @return the zone corresponding to the input (return 0 for UPS).
      **********************************************************************/
-    int Zone() const { return _zone; }
+    int Zone() const { return zone_; }
 
     ///@}
 
@@ -335,14 +334,14 @@ namespace GeographicLib {
     void SetAltZone(int zone = UTMUPS::STANDARD) const {
       if (zone == UTMUPS::MATCH)
         return;
-      zone = UTMUPS::StandardZone(_lat, _long, zone);
-      if (zone == _zone)
+      zone = UTMUPS::StandardZone(lat_, long_, zone);
+      if (zone == zone_)
         CopyToAlt();
       else {
         bool northp;
-        UTMUPS::Forward(_lat, _long,
-                        _alt_zone, northp,
-                        _alt_easting, _alt_northing, _alt_gamma, _alt_k,
+        UTMUPS::Forward(lat_, long_,
+                        alt_zone_, northp,
+                        alt_easting_, alt_northing_, alt_gamma_, alt_k_,
                         zone);
       }
     }
@@ -350,27 +349,27 @@ namespace GeographicLib {
     /**
      * @return current alternate zone (return 0 for UPS).
      **********************************************************************/
-    int AltZone() const { return _alt_zone; }
+    int AltZone() const { return alt_zone_; }
 
     /**
      * @return easting (meters) for alternate zone.
      **********************************************************************/
-    Math::real AltEasting() const { return _alt_easting; }
+    real AltEasting() const { return alt_easting_; }
 
     /**
      * @return northing (meters) for alternate zone.
      **********************************************************************/
-    Math::real AltNorthing() const { return _alt_northing; }
+    real AltNorthing() const { return alt_northing_; }
 
     /**
      * @return meridian convergence (degrees) for alternate zone.
      **********************************************************************/
-    Math::real AltConvergence() const { return _alt_gamma; }
+    real AltConvergence() const { return alt_gamma_; }
 
     /**
      * @return scale for alternate zone.
      **********************************************************************/
-    Math::real AltScale() const { return _alt_k; }
+    real AltScale() const { return alt_k_; }
     ///@}
 
     /** \name String representations of the GeoCoords object
@@ -527,7 +526,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    Math::real EquatorialRadius() const { return UTMUPS::EquatorialRadius(); }
+    real EquatorialRadius() const { return UTMUPS::EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the WGS84 ellipsoid.
@@ -535,7 +534,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    Math::real Flattening() const { return UTMUPS::Flattening(); }
+    real Flattening() const { return UTMUPS::Flattening(); }
     ///@}
 
   };

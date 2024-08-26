@@ -59,57 +59,13 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT AlbersEqualArea {
   private:
-    typedef Math::real real;
-    real eps_, epsx_, epsx2_, tol_, tol0_;
-    real _a, _f, _fm, _e2, _e, _e2m, _qZ, _qx;
-    real _sign, _lat0, _k0;
-    real _n0, _m02, _nrho0, _k2, _txi0, _scxi0, _sxi0;
-    static const int numit_ = 5;   // Newton iterations in Reverse
-    static const int numit0_ = 20; // Newton iterations in Init
-    static real hyp(real x) {
-      using std::hypot;
-      return hypot(real(1), x);
-    }
-    // atanh(      e   * x)/      e   if f > 0
-    // atan (sqrt(-e2) * x)/sqrt(-e2) if f < 0
-    // x                              if f = 0
-    real atanhee(real x) const {
-      using std::atan; using std::atanh;
-      return _f > 0 ? atanh(_e * x)/_e : (_f < 0 ? (atan(_e * x)/_e) : x);
-    }
-    // return atanh(sqrt(x))/sqrt(x) - 1, accurate for small x
-    static real atanhxm1(real x);
+    real a_, f_, fm_, e2_, e_, e2m_, qZ_, qx_;
+    real sign_, lat0_, k0_;
+    real n0_, m02_, nrho0_, k2_, txi0_, scxi0_, sxi0_;
 
-    // Divided differences
-    // Definition: Df(x,y) = (f(x)-f(y))/(x-y)
-    // See:
-    //   W. M. Kahan and R. J. Fateman,
-    //   Symbolic computation of divided differences,
-    //   SIGSAM Bull. 33(2), 7-28 (1999)
-    //   https://doi.org/10.1145/334714.334716
-    //   http://www.cs.berkeley.edu/~fateman/papers/divdiff.pdf
-    //
-    // General rules
-    // h(x) = f(g(x)): Dh(x,y) = Df(g(x),g(y))*Dg(x,y)
-    // h(x) = f(x)*g(x):
-    //        Dh(x,y) = Df(x,y)*g(x) + Dg(x,y)*f(y)
-    //                = Df(x,y)*g(y) + Dg(x,y)*f(x)
-    //                = Df(x,y)*(g(x)+g(y))/2 + Dg(x,y)*(f(x)+f(y))/2
-    //
-    // sn(x) = x/sqrt(1+x^2): Dsn(x,y) = (x+y)/((sn(x)+sn(y))*(1+x^2)*(1+y^2))
-    static real Dsn(real x, real y, real sx, real sy) {
-      // sx = x/hyp(x)
-      real t = x * y;
-      return t > 0 ? (x + y) * Math::sq( (sx * sy)/t ) / (sx + sy) :
-        (x - y != 0 ? (sx - sy) / (x - y) : 1);
-    }
-    // Datanhee(x,y) = (atanee(x)-atanee(y))/(x-y)
-    //               = atanhee((x-y)/(1-e^2*x*y))/(x-y)
-    real Datanhee(real x, real y) const {
-      real t = x - y,  d = 1 - _e2 * x * y;
-      return t == 0 ? 1 / d :
-        (x*y < 0 ? atanhee(x) - atanhee(y) : atanhee(t / d)) / t;
-    }
+    real atanhee (real x) const;
+    real Datanhee (real x, real y) const;
+
     // DDatanhee(x,y) = (Datanhee(1,y) - Datanhee(1,x))/(y-x)
     real DDatanhee(real x, real y) const;
     real DDatanhee0(real x, real y) const;
@@ -262,13 +218,13 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value used in
      *   the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return latitude of the origin for the projection (degrees).
@@ -277,13 +233,13 @@ namespace GeographicLib {
      * in the 1-parallel constructor and lies between \e stdlat1 and \e stdlat2
      * in the 2-parallel constructors.
      **********************************************************************/
-    Math::real OriginLatitude() const { return _lat0; }
+    real OriginLatitude() const { return lat0_; }
 
     /**
      * @return central scale for the projection.  This is the azimuthal scale
      *   on the latitude of origin.
      **********************************************************************/
-    Math::real CentralScale() const { return _k0; }
+    real CentralScale() const { return k0_; }
     ///@}
 
     /**

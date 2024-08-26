@@ -15,42 +15,42 @@ namespace GeographicLib {
 
   void NormalGravity::Initialize(real a, real GM, real omega, real f_J2,
                                  bool geometricp) {
-    _a = a;
-    if (!(isfinite(_a) && _a > 0))
+    a_ = a;
+    if (!(isfinite(a_) && a_ > 0))
       throw GeographicErr("Equatorial radius is not positive");
-    _gGM = GM;
-    if (!isfinite(_gGM))
+    gGM_ = GM;
+    if (!isfinite(gGM_))
       throw GeographicErr("Gravitational constant is not finite");
-    _omega = omega;
-    _omega2 = Math::sq(_omega);
-    _aomega2 = Math::sq(_omega * _a);
-    if (!(isfinite(_omega2) && isfinite(_aomega2)))
+    omega_ = omega;
+    omega2_ = Math::sq(omega_);
+    aomega2_ = Math::sq(omega_ * a_);
+    if (!(isfinite(omega2_) && isfinite(aomega2_)))
       throw GeographicErr("Rotation velocity is not finite");
-    _f = geometricp ? f_J2 : J2ToFlattening(_a, _gGM, _omega, f_J2);
-    _b = _a * (1 - _f);
-    if (!(isfinite(_b) && _b > 0))
+    f_ = geometricp ? f_J2 : J2ToFlattening(a_, gGM_, omega_, f_J2);
+    b_ = a_ * (1 - f_);
+    if (!(isfinite(b_) && b_ > 0))
       throw GeographicErr("Polar semi-axis is not positive");
-    _jJ2 = geometricp ? FlatteningToJ2(_a, _gGM, _omega, f_J2) : f_J2;
-    _e2 = _f * (2 - _f);
-    _ep2 = _e2 / (1 - _e2);
-    real ex2 = _f < 0 ? -_e2 : _ep2;
-    _qQ0 = Qf(ex2, _f < 0);
-    _earth = Geocentric(_a, _f);
-    _eE = _a * sqrt(fabs(_e2));  // H+M, Eq 2-54
+    jJ2_ = geometricp ? FlatteningToJ2(a_, gGM_, omega_, f_J2) : f_J2;
+    e2_ = f_ * (2 - f_);
+    ep2_ = e2_ / (1 - e2_);
+    real ex2 = f_ < 0 ? -e2_ : ep2_;
+    qQ0_ = Qf(ex2, f_ < 0);
+    earth_ = Geocentric(a_, f_);
+    eE_ = a_ * sqrt(fabs(e2_));  // H+M, Eq 2-54
     // H+M, Eq 2-61
-    _uU0 = _gGM * atanzz(ex2, _f < 0) / _b + _aomega2 / 3;
-    real P = Hf(ex2, _f < 0) / (6 * _qQ0);
+    uU0_ = gGM_ * atanzz(ex2, f_ < 0) / b_ + aomega2_ / 3;
+    real P = Hf(ex2, f_ < 0) / (6 * qQ0_);
     // H+M, Eq 2-73
-    _gammae = _gGM / (_a * _b) - (1 + P) * _a * _omega2;
+    gammae_ = gGM_ / (a_ * b_) - (1 + P) * a_ * omega2_;
     // H+M, Eq 2-74
-    _gammap = _gGM / (_a * _a) + 2 * P * _b * _omega2;
+    gammap_ = gGM_ / (a_ * a_) + 2 * P * b_ * omega2_;
     // k = gammae * (b * gammap / (a * gammae) - 1)
     //   = (b * gammap - a * gammae) / a
-    _k = -_e2 * _gGM / (_a * _b) +
-      _omega2 * (P * (_a + 2 * _b * (1 - _f)) + _a);
+    k_ = -e2_ * gGM_ / (a_ * b_) +
+      omega2_ * (P * (a_ + 2 * b_ * (1 - f_)) + a_);
     // f* = (gammap - gammae) / gammae
-    _fstar = (-_f * _gGM / (_a * _b) + _omega2 * (P * (_a + 2 * _b) + _a)) /
-      _gammae;
+    fstar_ = (-f_ * gGM_ / (a_ * b_) + omega2_ * (P * (a_ + 2 * b_) + a_)) /
+      gammae_;
   }
 
   NormalGravity::NormalGravity(real a, real GM, real omega, real f_J2,
@@ -74,7 +74,7 @@ namespace GeographicLib {
     return grs80;
   }
 
-  Math::real NormalGravity::atan7series(real x) {
+  real NormalGravity::atan7series(real x) {
     // compute -sum( (-x)^n/(2*n+7), n, 0, inf)
     //   = -1/7 + x/9 - x^2/11 + x^3/13 ...
     //   = (atan(sqrt(x))/sqrt(x)-(1-x/3+x^2/5)) / x^3 (x > 0)
@@ -90,13 +90,13 @@ namespace GeographicLib {
     // taking log2 of both sides, a stronger condition is n*(-e) < -lg2eps;
     // or n*e > lg2eps or n > ceiling(lg2eps/e)
     int n = x == 0 ? 1 : int(ceil(lg2eps_ / e));
-    Math::real v = 0;
+    real v = 0;
     while (n--)                 // iterating from n-1 down to 0
-      v = - x * v - 1/Math::real(2*n + 7);
+      v = - x * v - 1/real(2*n + 7);
     return v;
   }
 
-  Math::real NormalGravity::atan5series(real x) {
+  real NormalGravity::atan5series(real x) {
     // Compute Taylor series approximations to
     //   (atan(z)-(z-z^3/3))/z^5,
     // z = sqrt(x)
@@ -104,7 +104,7 @@ namespace GeographicLib {
     return 1/real(5) + x * atan7series(x);
   }
 
-  Math::real NormalGravity::Qf(real x, bool alt) {
+  real NormalGravity::Qf(real x, bool alt) {
     // Compute
     //   Q(z) = (((1 + 3/z^2) * atan(z) - 3/z)/2) / z^3
     //        = q(z)/z^3 with q(z) defined by H+M, Eq 2-57 with z = E/u
@@ -115,7 +115,7 @@ namespace GeographicLib {
       (3 * (3 + y) * atan5series(y) - 1) / 6;
   }
 
-  Math::real NormalGravity::Hf(real x, bool alt) {
+  real NormalGravity::Hf(real x, bool alt) {
     // z = sqrt(x)
     // Compute
     //   H(z) = (3*Q(z)+z*diff(Q(z),z))*(1+z^2)
@@ -127,7 +127,7 @@ namespace GeographicLib {
       1 - 3 * (1 + y) * atan5series(y);
   }
 
-  Math::real NormalGravity::QH3f(real x, bool alt) {
+  real NormalGravity::QH3f(real x, bool alt) {
     // z = sqrt(x)
     // (Q(z) - H(z)/3) / z^2
     //   = - (1+z^2)/(3*z) * d(Q(z))/dz - Q(z)
@@ -139,25 +139,25 @@ namespace GeographicLib {
       ((25 + 15*y) * atan7series(y) + 3)/10;
   }
 
-  Math::real NormalGravity::Jn(int n) const {
-    // Note Jn(0) = -1; Jn(2) = _jJ2; Jn(odd) = 0
+  real NormalGravity::Jn(int n) const {
+    // Note Jn(0) = -1; Jn(2) = jJ2_; Jn(odd) = 0
     if (n & 1 || n < 0)
       return 0;
     n /= 2;
-    real e2n = 1;            // Perhaps this should just be e2n = pow(-_e2, n);
+    real e2n = 1;            // Perhaps this should just be e2n = pow(-e2_, n);
     for (int j = n; j--;)
-      e2n *= -_e2;
+      e2n *= -e2_;
     return                      // H+M, Eq 2-92
-      -3 * e2n * ((1 - n) + 5 * n * _jJ2 / _e2) / ((2 * n + 1) * (2 * n + 3));
+      -3 * e2n * ((1 - n) + 5 * n * jJ2_ / e2_) / ((2 * n + 1) * (2 * n + 3));
   }
 
-  Math::real NormalGravity::SurfaceGravity(real lat) const {
+  real NormalGravity::SurfaceGravity(real lat) const {
     real sphi = Math::sind(Math::LatFix(lat));
     // H+M, Eq 2-78
-    return (_gammae + _k * Math::sq(sphi)) / sqrt(1 - _e2 * Math::sq(sphi));
+    return (gammae_ + k_ * Math::sq(sphi)) / sqrt(1 - e2_ * Math::sq(sphi));
   }
 
-  Math::real NormalGravity::V0(real X, real Y, real Z,
+  real NormalGravity::V0(real X, real Y, real Z,
                                real& GammaX, real& GammaY, real& GammaZ) const
   {
     // See H+M, Sec 6-2
@@ -166,15 +166,15 @@ namespace GeographicLib {
       clam = p != 0 ? X/p : 1,
       slam = p != 0 ? Y/p : 0,
       r = hypot(p, Z);
-    if (_f < 0) swap(p, Z);
+    if (f_ < 0) swap(p, Z);
     real
-      Q = Math::sq(r) - Math::sq(_eE),
-      t2 = Math::sq(2 * _eE * Z),
+      Q = Math::sq(r) - Math::sq(eE_),
+      t2 = Math::sq(2 * eE_ * Z),
       disc = sqrt(Math::sq(Q) + t2),
       // This is H+M, Eq 6-8a, but generalized to deal with Q negative
       // accurately.
       u = sqrt((Q >= 0 ? (Q + disc) : t2 / (disc - Q)) / 2),
-      uE = hypot(u, _eE),
+      uE = hypot(u, eE_),
       // H+M, Eq 6-8b
       sbet = u != 0 ? Z * uE : copysign(sqrt(-Q), Z),
       cbet = u != 0 ? p * u : p,
@@ -182,28 +182,28 @@ namespace GeographicLib {
     sbet = s != 0 ? sbet/s : 1;
     cbet = s != 0 ? cbet/s : 0;
     real
-      z = _eE/u,
+      z = eE_/u,
       z2 = Math::sq(z),
-      den = hypot(u, _eE * sbet);
-    if (_f < 0) {
+      den = hypot(u, eE_ * sbet);
+    if (f_ < 0) {
       swap(sbet, cbet);
       swap(u, uE);
     }
     real
       invw = uE / den,          // H+M, Eq 2-63
-      bu = _b / (u != 0 || _f < 0 ? u : _eE),
+      bu = b_ / (u != 0 || f_ < 0 ? u : eE_),
       // Qf(z2->inf, false) = pi/(4*z^3)
-      q = ((u != 0 || _f < 0 ? Qf(z2, _f < 0) : Math::pi() / 4) / _qQ0) *
+      q = ((u != 0 || f_ < 0 ? Qf(z2, f_ < 0) : Math::pi() / 4) / qQ0_) *
         bu * Math::sq(bu),
-      qp = _b * Math::sq(bu) * (u != 0 || _f < 0 ? Hf(z2, _f < 0) : 2) / _qQ0,
+      qp = b_ * Math::sq(bu) * (u != 0 || f_ < 0 ? Hf(z2, f_ < 0) : 2) / qQ0_,
       ang = (Math::sq(sbet) - 1/real(3)) / 2,
       // H+M, Eqs 2-62 + 6-9, but omitting last (rotational) term.
-      Vres = _gGM * (u != 0 || _f < 0 ?
-                    atanzz(z2, _f < 0) / u :
-                    Math::pi() / (2 * _eE)) + _aomega2 * q * ang,
+      Vres = gGM_ * (u != 0 || f_ < 0 ?
+                    atanzz(z2, f_ < 0) / u :
+                    Math::pi() / (2 * eE_)) + aomega2_ * q * ang,
       // H+M, Eq 6-10
-      gamu = - (_gGM + (_aomega2 * qp * ang)) * invw / Math::sq(uE),
-      gamb = _aomega2 * q * sbet * cbet * invw / uE,
+      gamu = - (gGM_ + (aomega2_ * qp * ang)) * invw / Math::sq(uE),
+      gamb = aomega2_ * q * sbet * cbet * invw / uE,
       t = u * invw / uE,
       gamp = t * cbet * gamu - invw * sbet * gamb;
     // H+M, Eq 6-12
@@ -213,14 +213,14 @@ namespace GeographicLib {
     return Vres;
   }
 
-  Math::real NormalGravity::Phi(real X, real Y, real& fX, real& fY) const {
-    fX = _omega2 * X;
-    fY = _omega2 * Y;
+  real NormalGravity::Phi(real X, real Y, real& fX, real& fY) const {
+    fX = omega2_ * X;
+    fY = omega2_ * Y;
     // N.B. fZ = 0;
-    return _omega2 * (Math::sq(X) + Math::sq(Y)) / 2;
+    return omega2_ * (Math::sq(X) + Math::sq(Y)) / 2;
   }
 
-  Math::real NormalGravity::U(real X, real Y, real Z,
+  real NormalGravity::U(real X, real Y, real Z,
                               real& gammaX, real& gammaY, real& gammaZ) const {
     real fX, fY;
     real Ures = V0(X, Y, Z, gammaX, gammaY, gammaZ) + Phi(X, Y, fX, fY);
@@ -229,11 +229,11 @@ namespace GeographicLib {
     return Ures;
   }
 
-  Math::real NormalGravity::Gravity(real lat, real h,
+  real NormalGravity::Gravity(real lat, real h,
                                     real& gammay, real& gammaz) const {
     real X, Y, Z;
     real M[Geocentric::dim2_];
-    _earth.IntForward(lat, 0, h, X, Y, Z, M);
+    earth_.IntForward(lat, 0, h, X, Y, Z, M);
     real gammaX, gammaY, gammaZ,
       Ures = U(X, Y, Z, gammaX, gammaY, gammaZ);
     // gammax = M[0] * gammaX + M[3] * gammaY + M[6] * gammaZ;
@@ -242,7 +242,7 @@ namespace GeographicLib {
     return Ures;
   }
 
-  Math::real NormalGravity::J2ToFlattening(real a, real GM,
+  real NormalGravity::J2ToFlattening(real a, real GM,
                                            real omega, real J2) {
     // Solve
     //   f = e^2 * (1 -  K * e/q0) - 3 * J2 = 0
@@ -284,7 +284,7 @@ namespace GeographicLib {
     return e2 / (1 + sqrt(1 - e2));
   }
 
-  Math::real NormalGravity::FlatteningToJ2(real a, real GM,
+  real NormalGravity::FlatteningToJ2(real a, real GM,
                                            real omega, real f) {
     real
       K = 2 * Math::sq(a * omega) * a / (15 * GM),

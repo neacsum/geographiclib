@@ -200,31 +200,31 @@ namespace GeographicLib {
 
   Geoid::Geoid(const std::string& name, const std::string& path, bool cubic,
                bool threadsafe)
-    : _name(name)
-    , _dir(path)
-    , _cubic(cubic)
-    , _a( Constants::WGS84_a() )
-    , _e2( (2 - Constants::WGS84_f()) * Constants::WGS84_f() )
-    , _degree( Math::degree() )
-    , _eps( sqrt(numeric_limits<real>::epsilon()) )
-    , _threadsafe(false)        // Set after cache is read
+    : name_(name)
+    , dir_(path)
+    , cubic_(cubic)
+    , a_( Constants::WGS84_a() )
+    , e2_( (2 - Constants::WGS84_f()) * Constants::WGS84_f() )
+    , degree_( Math::degree() )
+    , eps_( sqrt(numeric_limits<real>::epsilon()) )
+    , threadsafe_(false)        // Set after cache is read
   {
     static_assert(sizeof(pixel_t) == pixel_size_, "pixel_t has the wrong size");
-    if (_dir.empty())
-      _dir = DefaultGeoidPath();
-    _filename = _dir + "/" + _name + (pixel_size_ != 4 ? ".pgm" : ".pgm4");
-    _file.open(_filename.c_str(), ios::binary);
-    if (!(_file.good()))
-      throw GeographicErr("File not readable " + _filename);
+    if (dir_.empty())
+      dir_ = DefaultGeoidPath();
+    filename_ = dir_ + "/" + name_ + (pixel_size_ != 4 ? ".pgm" : ".pgm4");
+    file_.open(filename_.c_str(), ios::binary);
+    if (!(file_.good()))
+      throw GeographicErr("File not readable " + filename_);
     string s;
-    if (!(getline(_file, s) && s == "P5"))
-      throw GeographicErr("File not in PGM format " + _filename);
-    _offset = numeric_limits<real>::max();
-    _scale = 0;
-    _maxerror = _rmserror = -1;
-    _description = "NONE";
-    _datetime = "UNKNOWN";
-    while (getline(_file, s)) {
+    if (!(getline(file_, s) && s == "P5"))
+      throw GeographicErr("File not in PGM format " + filename_);
+    offset_ = numeric_limits<real>::max();
+    scale_ = 0;
+    maxerror_ = rmserror_ = -1;
+    description_ = "NONE";
+    datetime_ = "UNKNOWN";
+    while (getline(file_, s)) {
       if (s.empty())
         continue;
       if (s[0] == '#') {
@@ -236,74 +236,74 @@ namespace GeographicLib {
           string::size_type p =
             s.find_first_not_of(" \t", unsigned(is.tellg()));
           if (p != string::npos)
-            (key == "Description" ? _description : _datetime) = s.substr(p);
+            (key == "Description" ? description_ : datetime_) = s.substr(p);
         } else if (key == "Offset") {
-          if (!(is >> _offset))
-            throw GeographicErr("Error reading offset " + _filename);
+          if (!(is >> offset_))
+            throw GeographicErr("Error reading offset " + filename_);
         } else if (key == "Scale") {
-          if (!(is >> _scale))
-            throw GeographicErr("Error reading scale " + _filename);
-        } else if (key == (_cubic ? "MaxCubicError" : "MaxBilinearError")) {
+          if (!(is >> scale_))
+            throw GeographicErr("Error reading scale " + filename_);
+        } else if (key == (cubic_ ? "MaxCubicError" : "MaxBilinearError")) {
           // It's not an error if the error can't be read
-          is >> _maxerror;
-        } else if (key == (_cubic ? "RMSCubicError" : "RMSBilinearError")) {
+          is >> maxerror_;
+        } else if (key == (cubic_ ? "RMSCubicError" : "RMSBilinearError")) {
           // It's not an error if the error can't be read
-          is >> _rmserror;
+          is >> rmserror_;
         }
       } else {
         istringstream is(s);
-        if (!(is >> _width >> _height))
-          throw GeographicErr("Error reading raster size " + _filename);
+        if (!(is >> width_ >> height_))
+          throw GeographicErr("Error reading raster size " + filename_);
         break;
       }
     }
     {
       unsigned maxval;
-      if (!(_file >> maxval))
-        throw GeographicErr("Error reading maxval " + _filename);
+      if (!(file_ >> maxval))
+        throw GeographicErr("Error reading maxval " + filename_);
       if (maxval != pixel_max_)
-        throw GeographicErr("Incorrect value of maxval " + _filename);
+        throw GeographicErr("Incorrect value of maxval " + filename_);
       // Add 1 for whitespace after maxval
-      _datastart = (unsigned long long)(_file.tellg()) + 1ULL;
-      _swidth = (unsigned long long)(_width);
+      datastart_ = (unsigned long long)(file_.tellg()) + 1ULL;
+      swidth_ = (unsigned long long)(width_);
     }
-    if (_offset == numeric_limits<real>::max())
-      throw GeographicErr("Offset not set " + _filename);
-    if (_scale == 0)
-      throw GeographicErr("Scale not set " + _filename);
-    if (_scale < 0)
-      throw GeographicErr("Scale must be positive " + _filename);
-    if (_height < 2 || _width < 2)
+    if (offset_ == numeric_limits<real>::max())
+      throw GeographicErr("Offset not set " + filename_);
+    if (scale_ == 0)
+      throw GeographicErr("Scale not set " + filename_);
+    if (scale_ < 0)
+      throw GeographicErr("Scale must be positive " + filename_);
+    if (height_ < 2 || width_ < 2)
       // Coarsest grid spacing is 180deg.
-      throw GeographicErr("Raster size too small " + _filename);
-    if (_width & 1)
+      throw GeographicErr("Raster size too small " + filename_);
+    if (width_ & 1)
       // This is so that longitude grids can be extended thru the poles.
-      throw GeographicErr("Raster width is odd " + _filename);
-    if (!(_height & 1))
+      throw GeographicErr("Raster width is odd " + filename_);
+    if (!(height_ & 1))
       // This is so that latitude grid includes the equator.
-      throw GeographicErr("Raster height is even " + _filename);
-    _file.seekg(0, ios::end);
-    if (!_file.good() ||
-        _datastart + pixel_size_ * _swidth * (unsigned long long)(_height) !=
-        (unsigned long long)(_file.tellg()))
+      throw GeographicErr("Raster height is even " + filename_);
+    file_.seekg(0, ios::end);
+    if (!file_.good() ||
+        datastart_ + pixel_size_ * swidth_ * (unsigned long long)(height_) !=
+        (unsigned long long)(file_.tellg()))
       // Possibly this test should be "<" because the file contains, e.g., a
       // second image.  However, for now we are more strict.
-      throw GeographicErr("File has the wrong length " + _filename);
-    _rlonres = _width / real(Math::td);
-    _rlatres = (_height - 1) / real(Math::hd);
-    _cache = false;
-    _ix = _width;
-    _iy = _height;
+      throw GeographicErr("File has the wrong length " + filename_);
+    rlonres_ = width_ / real(360);
+    rlatres_ = (height_ - 1) / real(180);
+    cache_ = false;
+    ix_ = width_;
+    iy_ = height_;
     // Ensure that file errors throw exceptions
-    _file.exceptions(ifstream::eofbit | ifstream::failbit | ifstream::badbit);
+    file_.exceptions(ifstream::eofbit | ifstream::failbit | ifstream::badbit);
     if (threadsafe) {
       CacheAll();
-      _file.close();
-      _threadsafe = true;
+      file_.close();
+      threadsafe_ = true;
     }
   }
 
-  Math::real Geoid::height(real lat, real lon) const {
+  real Geoid::height(real lat, real lon) const {
     using std::isnan;           // Needed for Centos 7, ubuntu 14
     lat = Math::LatFix(lat);
     if (isnan(lat) || isnan(lon)) {
@@ -311,20 +311,20 @@ namespace GeographicLib {
     }
     lon = Math::AngNormalize(lon);
     real
-      fx =  lon * _rlonres,
-      fy = -lat * _rlatres;
+      fx =  lon * rlonres_,
+      fy = -lat * rlatres_;
     int
       ix = int(floor(fx)),
-      iy = min((_height - 1)/2 - 1, int(floor(fy)));
+      iy = min((height_ - 1)/2 - 1, int(floor(fy)));
     fx -= ix;
     fy -= iy;
-    iy += (_height - 1)/2;
-    ix += ix < 0 ? _width : (ix >= _width ? -_width : 0);
+    iy += (height_ - 1)/2;
+    ix += ix < 0 ? width_ : (ix >= width_ ? -width_ : 0);
     real v00 = 0, v01 = 0, v10 = 0, v11 = 0;
     real t[nterms_];
 
-    if (_threadsafe || !(ix == _ix && iy == _iy)) {
-      if (!_cubic) {
+    if (threadsafe_ || !(ix == ix_ && iy == iy_)) {
+      if (!cubic_) {
         v00 = rawval(ix    , iy    );
         v01 = rawval(ix + 1, iy    );
         v10 = rawval(ix    , iy + 1);
@@ -345,8 +345,8 @@ namespace GeographicLib {
         v[k++] = rawval(ix    , iy + 2);
         v[k++] = rawval(ix + 1, iy + 2);
 
-        const int* c3x = iy == 0 ? c3n_ : (iy == _height - 2 ? c3s_ : c3_);
-        int c0x = iy == 0 ? c0n_ : (iy == _height - 2 ? c0s_ : c0_);
+        const int* c3x = iy == 0 ? c3n_ : (iy == height_ - 2 ? c3s_ : c3_);
+        int c0x = iy == 0 ? c0n_ : (iy == height_ - 2 ? c0s_ : c0_);
         for (unsigned i = 0; i < nterms_; ++i) {
           t[i] = 0;
           for (unsigned j = 0; j < stencilsize_; ++j)
@@ -355,50 +355,50 @@ namespace GeographicLib {
         }
       }
     } else { // same cell; used cached coefficients
-      if (!_cubic) {
-        v00 = _v00;
-        v01 = _v01;
-        v10 = _v10;
-        v11 = _v11;
+      if (!cubic_) {
+        v00 = v00_;
+        v01 = v01_;
+        v10 = v10_;
+        v11 = v11_;
       } else
-        copy(_t, _t + nterms_, t);
+        copy(t_, t_ + nterms_, t);
     }
-    if (!_cubic) {
+    if (!cubic_) {
       real
         a = (1 - fx) * v00 + fx * v01,
         b = (1 - fx) * v10 + fx * v11,
         c = (1 - fy) * a + fy * b,
-        h = _offset + _scale * c;
-      if (!_threadsafe) {
-        _ix = ix;
-        _iy = iy;
-        _v00 = v00;
-        _v01 = v01;
-        _v10 = v10;
-        _v11 = v11;
+        h = offset_ + scale_ * c;
+      if (!threadsafe_) {
+        ix_ = ix;
+        iy_ = iy;
+        v00_ = v00;
+        v01_ = v01;
+        v10_ = v10;
+        v11_ = v11;
       }
       return h;
     } else {
       real h = t[0] + fx * (t[1] + fx * (t[3] + fx * t[6])) +
         fy * (t[2] + fx * (t[4] + fx * t[7]) +
              fy * (t[5] + fx * t[8] + fy * t[9]));
-      h = _offset + _scale * h;
-      if (!_threadsafe) {
-        _ix = ix;
-        _iy = iy;
-        copy(t, t + nterms_, _t);
+      h = offset_ + scale_ * h;
+      if (!threadsafe_) {
+        ix_ = ix;
+        iy_ = iy;
+        copy(t, t + nterms_, t_);
       }
       return h;
     }
   }
 
   void Geoid::CacheClear() const {
-    if (!_threadsafe) {
-      _cache = false;
+    if (!threadsafe_) {
+      cache_ = false;
       try {
-        _data.clear();
+        data_.clear();
         // Use swap to release memory back to system
-        vector< vector<pixel_t> >().swap(_data);
+        vector< vector<pixel_t> >().swap(data_);
       }
       catch (const exception&) {
       }
@@ -406,7 +406,7 @@ namespace GeographicLib {
   }
 
   void Geoid::CacheArea(real south, real west, real north, real east) const {
-    if (_threadsafe)
+    if (threadsafe_)
       throw GeographicErr("Attempt to change cache of threadsafe Geoid");
     if (south > north) {
       CacheClear();
@@ -417,68 +417,68 @@ namespace GeographicLib {
     west = Math::AngNormalize(west); // west in [-180, 180)
     east = Math::AngNormalize(east);
     if (east <= west)
-      east += Math::td;         // east - west in (0, 360]
+      east += 360;         // east - west in (0, 360]
     int
-      iw = int(floor(west * _rlonres)),
-      ie = int(floor(east * _rlonres)),
-      in = int(floor(-north * _rlatres)) + (_height - 1)/2,
-      is = int(floor(-south * _rlatres)) + (_height - 1)/2;
-    in = max(0, min(_height - 2, in));
-    is = max(0, min(_height - 2, is));
+      iw = int(floor(west * rlonres_)),
+      ie = int(floor(east * rlonres_)),
+      in = int(floor(-north * rlatres_)) + (height_ - 1)/2,
+      is = int(floor(-south * rlatres_)) + (height_ - 1)/2;
+    in = max(0, min(height_ - 2, in));
+    is = max(0, min(height_ - 2, is));
     is += 1;
     ie += 1;
-    if (_cubic) {
+    if (cubic_) {
       in -= 1;
       is += 1;
       iw -= 1;
       ie += 1;
     }
-    if (ie - iw >= _width - 1) {
+    if (ie - iw >= width_ - 1) {
       // Include entire longitude range
       iw = 0;
-      ie = _width - 1;
+      ie = width_ - 1;
     } else {
-      ie += iw < 0 ? _width : (iw >= _width ? -_width : 0);
-      iw += iw < 0 ? _width : (iw >= _width ? -_width : 0);
+      ie += iw < 0 ? width_ : (iw >= width_ ? -width_ : 0);
+      iw += iw < 0 ? width_ : (iw >= width_ ? -width_ : 0);
     }
-    int oysize = int(_data.size());
-    _xsize = ie - iw + 1;
-    _ysize = is - in + 1;
-    _xoffset = iw;
-    _yoffset = in;
+    int oysize = int(data_.size());
+    xsize_ = ie - iw + 1;
+    ysize_ = is - in + 1;
+    xoffset_ = iw;
+    yoffset_ = in;
 
     try {
-      _data.resize(_ysize, vector<pixel_t>(_xsize));
-      for (int iy = min(oysize, _ysize); iy--;)
-        _data[iy].resize(_xsize);
+      data_.resize(ysize_, vector<pixel_t>(xsize_));
+      for (int iy = min(oysize, ysize_); iy--;)
+        data_[iy].resize(xsize_);
     }
     catch (const bad_alloc&) {
       CacheClear();
-      throw GeographicErr("Insufficient memory for caching " + _filename);
+      throw GeographicErr("Insufficient memory for caching " + filename_);
     }
 
     try {
       for (int iy = in; iy <= is; ++iy) {
         int iy1 = iy, iw1 = iw;
-        if (iy < 0 || iy >= _height) {
+        if (iy < 0 || iy >= height_) {
           // Allow points "beyond" the poles to support interpolation
-          iy1 = iy1 < 0 ? -iy1 : 2 * (_height - 1) - iy1;
-          iw1 += _width/2;
-          if (iw1 >= _width)
-            iw1 -= _width;
+          iy1 = iy1 < 0 ? -iy1 : 2 * (height_ - 1) - iy1;
+          iw1 += width_/2;
+          if (iw1 >= width_)
+            iw1 -= width_;
         }
-        int xs1 = min(_width - iw1, _xsize);
+        int xs1 = min(width_ - iw1, xsize_);
         filepos(iw1, iy1);
         Utility::readarray<pixel_t, pixel_t, true>
-          (_file, &(_data[iy - in][0]), xs1);
-        if (xs1 < _xsize) {
+          (file_, &(data_[iy - in][0]), xs1);
+        if (xs1 < xsize_) {
           // Wrap around longitude = 0
           filepos(0, iy1);
           Utility::readarray<pixel_t, pixel_t, true>
-            (_file, &(_data[iy - in][xs1]), _xsize - xs1);
+            (file_, &(data_[iy - in][xs1]), xsize_ - xs1);
         }
       }
-      _cache = true;
+      cache_ = true;
     }
     catch (const exception& e) {
       CacheClear();

@@ -67,7 +67,6 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT MGRS {
   private:
-    typedef Math::real real;
     static const char* const hemispheres_;
     static const char* const utmcols_[3];
     static const char* const utmrow_;
@@ -342,7 +341,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    static Math::real EquatorialRadius() { return UTMUPS::EquatorialRadius(); }
+    static real EquatorialRadius() { return UTMUPS::EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the WGS84 ellipsoid.
@@ -350,7 +349,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    static Math::real Flattening() { return UTMUPS::Flattening(); }
+    static real Flattening() { return UTMUPS::Flattening(); }
     ///@}
 
     /**

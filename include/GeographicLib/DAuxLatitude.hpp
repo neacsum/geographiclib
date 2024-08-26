@@ -22,7 +22,6 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT DAuxLatitude : public AuxLatitude {
   private:
-    typedef Math::real real;
     typedef AuxLatitude base;
   public:
     /**
@@ -59,7 +58,7 @@ namespace GeographicLib {
      * subsequent calls.  The series method is accurate for abs(\e f) &le;
      * 1/150.
      **********************************************************************/
-    Math::real DConvert(int auxin, int auxout,
+    real DConvert(int auxin, int auxout,
                         const AuxAngle& zeta1, const AuxAngle& zeta2) const;
     /**
      * The divided difference of the parametric latitude with respect to the
@@ -73,7 +72,7 @@ namespace GeographicLib {
      * \note This routine uses the exact formulas and is valid for arbitrary
      * latitude.
      **********************************************************************/
-    Math::real DParametric(const AuxAngle& phi1, const AuxAngle& phi2) const;
+    real DParametric(const AuxAngle& phi1, const AuxAngle& phi2) const;
     /**
      * The divided difference of the rectifying latitude with respect to the
      * geographic latitude.
@@ -86,7 +85,7 @@ namespace GeographicLib {
      * \note This routine uses the exact formulas and is valid for arbitrary
      * latitude.
      **********************************************************************/
-    Math::real DRectifying(const AuxAngle& phi1, const AuxAngle& phi2) const;
+    real DRectifying(const AuxAngle& phi1, const AuxAngle& phi2) const;
     /**
      * The divided difference of the isometric latitude with respect to the
      * geographic latitude.
@@ -100,7 +99,7 @@ namespace GeographicLib {
      * \note This routine uses the exact formulas and is valid for arbitrary
      * latitude.
      **********************************************************************/
-    Math::real DIsometric(const AuxAngle& phi1, const AuxAngle& phi2) const;
+    real DIsometric(const AuxAngle& phi1, const AuxAngle& phi2) const;
     /**
      * The divided difference of AuxLatitude::Clenshaw.
      *
@@ -123,7 +122,7 @@ namespace GeographicLib {
      * \warning \e Delta **must** be either 1 or (\e zeta2 - \e zeta1);
      * other values will return nonsense.
      **********************************************************************/
-    static Math::real DClenshaw(bool sinp, real Delta,
+    static real DClenshaw(bool sinp, real Delta,
                                 real szeta1, real czeta1,
                                 real szeta2, real czeta2,
                                 const real c[], int K);
@@ -141,7 +140,7 @@ namespace GeographicLib {
      *
      * This routine computes Dasinh(x, y) / Datan(x, y).
      **********************************************************************/
-    static Math::real Dlam(real x, real y) {
+    static real Dlam(real x, real y) {
       using std::isnan; using std::isinf;
       return x == y ? base::sc(x) :
         (isnan(x) || isnan(y) ? std::numeric_limits<real>::quiet_NaN() :
@@ -162,7 +161,7 @@ namespace GeographicLib {
      * \note This parameters for this routine are the \e tangents of conformal
      * latitude.
      **********************************************************************/
-    static Math::real Dp0Dpsi(real x, real y) {
+    static real Dp0Dpsi(real x, real y) {
       using std::isnan; using std::isinf; using std::copysign;
       return x == y ? base::sn(x) :
         (isnan(x + y) ? x + y : // N.B. nan for inf-inf

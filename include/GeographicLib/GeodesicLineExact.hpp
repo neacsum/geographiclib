@@ -41,22 +41,21 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT GeodesicLineExact {
   private:
-    typedef Math::real real;
     friend class GeodesicExact;
     friend class GeodesicLine;
-    int _nC4;
+    int nC4_;
 
     real tiny_;
-    real _lat1, _lon1, _azi1;
-    real _a, _f, _b, _c2, _f1, _e2, _salp0, _calp0, _k2,
-      _salp1, _calp1, _ssig1, _csig1, _dn1, _stau1, _ctau1,
-      _somg1, _comg1, _cchi1,
-      _aA4, _eE0, _dD0, _hH0, _eE1, _dD1, _hH1;
-    real _a13, _s13;
-    real _bB41;
-    std::vector<real> _cC4a;
-    EllipticFunction _eE;
-    unsigned _caps;
+    real lat1_, lon1_, azi1_;
+    real a_, f_, b_, c2_, f1_, e2_, salp0_, calp0_, k2_,
+      salp1_, calp1_, ssig1_, csig1_, dn1_, stau1_, ctau1_,
+      somg1_, comg1_, cchi1_,
+      aA4_, eE0_, dD0_, hH0_, eE1_, dD1_, hH1_;
+    real a13_, s13_;
+    real bB41_;
+    std::vector<real> cC4a_;
+    EllipticFunction eE_;
+    unsigned caps_;
 
     void LineInit(const GeodesicExact& g,
                   real lat1, real lon1,
@@ -214,7 +213,7 @@ namespace GeographicLib {
      * GeodesicExact::Line.  Use Init() to test whether object is still in this
      * uninitialized state.
      **********************************************************************/
-    GeodesicLineExact() : _caps(0U) {}
+    GeodesicLineExact() : caps_(0U) {}
     ///@}
 
     /** \name Position in terms of distance
@@ -260,7 +259,7 @@ namespace GeographicLib {
      * Note, however, that the arc length is always computed and returned as
      * the function value.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2, real& azi2,
+    real Position(real s12, real& lat2, real& lon2, real& azi2,
                         real& m12, real& M12, real& M21, real& S12) const {
       real t;
       return GenPosition(false, s12,
@@ -272,7 +271,7 @@ namespace GeographicLib {
     /**
      * See the documentation for GeodesicLineExact::Position.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2)
+    real Position(real s12, real& lat2, real& lon2)
       const {
       real t;
       return GenPosition(false, s12,
@@ -283,7 +282,7 @@ namespace GeographicLib {
     /**
      * See the documentation for GeodesicLineExact::Position.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2, real& azi2) const {
+    real Position(real s12, real& lat2, real& lon2, real& azi2) const {
       real t;
       return GenPosition(false, s12,
                          LATITUDE | LONGITUDE | AZIMUTH,
@@ -293,7 +292,7 @@ namespace GeographicLib {
     /**
      * See the documentation for GeodesicLineExact::Position.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2, real& azi2,
+    real Position(real s12, real& lat2, real& lon2, real& azi2,
                         real& m12) const {
       real t;
       return GenPosition(false, s12,
@@ -305,7 +304,7 @@ namespace GeographicLib {
     /**
      * See the documentation for GeodesicLineExact::Position.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2, real& azi2,
+    real Position(real s12, real& lat2, real& lon2, real& azi2,
                         real& M12, real& M21) const {
       real t;
       return GenPosition(false, s12,
@@ -317,7 +316,7 @@ namespace GeographicLib {
     /**
      * See the documentation for GeodesicLineExact::Position.
      **********************************************************************/
-    Math::real Position(real s12, real& lat2, real& lon2, real& azi2,
+    real Position(real s12, real& lat2, real& lon2, real& azi2,
                         real& m12, real& M12, real& M21) const {
       real t;
       return GenPosition(false, s12,
@@ -507,7 +506,7 @@ namespace GeographicLib {
      * &minus; \e lon1 indicates how many times and in what sense the geodesic
      * encircles the ellipsoid.
      **********************************************************************/
-    Math::real GenPosition(bool arcmode, real s12_a12, unsigned outmask,
+    real GenPosition(bool arcmode, real s12_a12, unsigned outmask,
                            real& lat2, real& lon2, real& azi2,
                            real& s12, real& m12, real& M12, real& M21,
                            real& S12) const;
@@ -559,25 +558,25 @@ namespace GeographicLib {
     /**
      * @return true if the object has been initialized.
      **********************************************************************/
-    bool Init() const { return _caps != 0U; }
+    bool Init() const { return caps_ != 0U; }
 
     /**
      * @return \e lat1 the latitude of point 1 (degrees).
      **********************************************************************/
-    Math::real Latitude() const
-    { return Init() ? _lat1 : Math::NaN(); }
+    real Latitude() const
+    { return Init() ? lat1_ : Math::NaN(); }
 
     /**
      * @return \e lon1 the longitude of point 1 (degrees).
      **********************************************************************/
-    Math::real Longitude() const
-    { return Init() ? _lon1 : Math::NaN(); }
+    real Longitude() const
+    { return Init() ? lon1_ : Math::NaN(); }
 
     /**
      * @return \e azi1 the azimuth (degrees) of the geodesic line at point 1.
      **********************************************************************/
-    Math::real Azimuth() const
-    { return Init() ? _azi1 : Math::NaN(); }
+    real Azimuth() const
+    { return Init() ? azi1_ : Math::NaN(); }
 
     /**
      * The sine and cosine of \e azi1.
@@ -586,7 +585,7 @@ namespace GeographicLib {
      * @param[out] cazi1 the cosine of \e azi1.
      **********************************************************************/
     void Azimuth(real& sazi1, real& cazi1) const
-    { if (Init()) { sazi1 = _salp1; cazi1 = _calp1; } }
+    { if (Init()) { sazi1 = salp1_; cazi1 = calp1_; } }
 
     /**
      * @return \e azi0 the azimuth (degrees) of the geodesic line as it crosses
@@ -594,8 +593,8 @@ namespace GeographicLib {
      *
      * The result lies in [&minus;90&deg;, 90&deg;].
      **********************************************************************/
-    Math::real EquatorialAzimuth() const
-    { return Init() ? Math::atan2d(_salp0, _calp0) : Math::NaN(); }
+    real EquatorialAzimuth() const
+    { return Init() ? Math::atan2d(salp0_, calp0_) : Math::NaN(); }
 
     /**
      * The sine and cosine of \e azi0.
@@ -604,7 +603,7 @@ namespace GeographicLib {
      * @param[out] cazi0 the cosine of \e azi0.
      **********************************************************************/
     void EquatorialAzimuth(real& sazi0, real& cazi0) const
-    { if (Init()) { sazi0 = _salp0; cazi0 = _calp0; } }
+    { if (Init()) { sazi0 = salp0_; cazi0 = calp0_; } }
 
     /**
      * @return \e a1 the arc length (degrees) between the northward equatorial
@@ -612,9 +611,9 @@ namespace GeographicLib {
      *
      * The result lies in [&minus;180&deg;, 180&deg;].
      **********************************************************************/
-    Math::real EquatorialArc() const {
+    real EquatorialArc() const {
       using std::atan2;
-      return Init() ? atan2(_ssig1, _csig1) / Math::degree() : Math::NaN();
+      return Init() ? atan2(ssig1_, csig1_) / Math::degree() : Math::NaN();
     }
 
     /**
@@ -622,21 +621,21 @@ namespace GeographicLib {
      *   the value inherited from the GeodesicExact object used in the
      *   constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const
-    { return Init() ? _a : Math::NaN(); }
+    real EquatorialRadius() const
+    { return Init() ? a_ : Math::NaN(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the GeodesicExact object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const
-    { return Init() ? _f : Math::NaN(); }
+    real Flattening() const
+    { return Init() ? f_ : Math::NaN(); }
 
     /**
      * @return \e caps the computational capabilities that this object was
      *   constructed with.  LATITUDE and AZIMUTH are always included.
      **********************************************************************/
-    unsigned Capabilities() const { return _caps; }
+    unsigned Capabilities() const { return caps_; }
 
     /**
      * Test what capabilities are available.
@@ -646,7 +645,7 @@ namespace GeographicLib {
      **********************************************************************/
     bool Capabilities(unsigned testcaps) const {
       testcaps &= OUT_ALL;
-      return (_caps & testcaps) == testcaps;
+      return (caps_ & testcaps) == testcaps;
     }
 
     /**
@@ -656,19 +655,19 @@ namespace GeographicLib {
      *   value.
      * @return \e s13 if \e arcmode is false; \e a13 if \e arcmode is true.
      **********************************************************************/
-    Math::real GenDistance(bool arcmode) const
-    { return Init() ? (arcmode ? _a13 : _s13) : Math::NaN(); }
+    real GenDistance(bool arcmode) const
+    { return Init() ? (arcmode ? a13_ : s13_) : Math::NaN(); }
 
     /**
      * @return \e s13, the distance to point 3 (meters).
      **********************************************************************/
-    Math::real Distance() const
+    real Distance() const
     { return GenDistance(false); }
 
     /**
      * @return \e a13, the arc length to point 3 (degrees).
      **********************************************************************/
-    Math::real Arc() const { return GenDistance(true); }
+    real Arc() const { return GenDistance(true); }
     ///@}
 
   };

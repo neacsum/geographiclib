@@ -74,16 +74,15 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT MagneticModel {
   private:
-    typedef Math::real real;
     static const int idlength_ = 8;
-    std::string _name, _dir, _description, _date, _filename, _id;
-    real _t0, _dt0, _tmin, _tmax, _a, _hmin, _hmax;
-    int _nNmodels, _nNconstants, _nmx, _mmx;
-    SphericalHarmonic::normalization _norm;
-    Geocentric _earth;
-    std::vector< std::vector<real> > _gG;
-    std::vector< std::vector<real> > _hH;
-    std::vector<SphericalHarmonic> _harm;
+    std::string name_, dir_, description_, date_, filename_, id_;
+    real t0_, dt0_, tmin_, tmax_, a_, hmin_, hmax_;
+    int nNmodels_, nNconstants_, nmx_, mmx_;
+    SphericalHarmonic::normalization norm_;
+    Geocentric earth_;
+    std::vector< std::vector<real> > gG_;
+    std::vector< std::vector<real> > hH_;
+    std::vector<SphericalHarmonic> harm_;
     void Field(real t, real lat, real lon, real h, bool diffp,
                real& Bx, real& By, real& Bz,
                real& Bxt, real& Byt, real& Bzt) const;
@@ -287,29 +286,29 @@ namespace GeographicLib {
      * @return the description of the magnetic model, if available, from the
      *   Description file in the data file; if absent, return "NONE".
      **********************************************************************/
-    const std::string& Description() const { return _description; }
+    const std::string& Description() const { return description_; }
 
     /**
      * @return date of the model, if available, from the ReleaseDate field in
      *   the data file; if absent, return "UNKNOWN".
      **********************************************************************/
-    const std::string& DateTime() const { return _date; }
+    const std::string& DateTime() const { return date_; }
 
     /**
      * @return full file name used to load the magnetic model.
      **********************************************************************/
-    const std::string& MagneticFile() const { return _filename; }
+    const std::string& MagneticFile() const { return filename_; }
 
     /**
      * @return "name" used to load the magnetic model (from the first argument
      *   of the constructor, but this may be overridden by the model file).
      **********************************************************************/
-    const std::string& MagneticModelName() const { return _name; }
+    const std::string& MagneticModelName() const { return name_; }
 
     /**
      * @return directory used to load the magnetic model.
      **********************************************************************/
-    const std::string& MagneticModelDirectory() const { return _dir; }
+    const std::string& MagneticModelDirectory() const { return dir_; }
 
     /**
      * @return the minimum height above the ellipsoid (in meters) for which
@@ -320,7 +319,7 @@ namespace GeographicLib {
      * argument is made by MagneticModel::operator()() or
      * MagneticModel::Circle.
      **********************************************************************/
-    Math::real MinHeight() const { return _hmin; }
+    real MinHeight() const { return hmin_; }
 
     /**
      * @return the maximum height above the ellipsoid (in meters) for which
@@ -331,7 +330,7 @@ namespace GeographicLib {
      * argument is made by MagneticModel::operator()() or
      * MagneticModel::Circle.
      **********************************************************************/
-    Math::real MaxHeight() const { return _hmax; }
+    real MaxHeight() const { return hmax_; }
 
     /**
      * @return the minimum time (in years) for which this MagneticModel should
@@ -342,7 +341,7 @@ namespace GeographicLib {
      * argument is made by MagneticModel::operator()() or
      * MagneticModel::Circle.
      **********************************************************************/
-    Math::real MinTime() const { return _tmin; }
+    real MinTime() const { return tmin_; }
 
     /**
      * @return the maximum time (in years) for which this MagneticModel should
@@ -353,30 +352,30 @@ namespace GeographicLib {
      * argument is made by MagneticModel::operator()() or
      * MagneticModel::Circle.
      **********************************************************************/
-    Math::real MaxTime() const { return _tmax; }
+    real MaxTime() const { return tmax_; }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value of \e a inherited from the Geocentric object used in the
      *   constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Geocentric object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
 
     /**
      * @return \e Nmax the maximum degree of the components of the model.
      **********************************************************************/
-    int Degree() const { return _nmx; }
+    int Degree() const { return nmx_; }
 
     /**
      * @return \e Mmax the maximum order of the components of the model.
      **********************************************************************/
-    int Order() const { return _mmx; }
+    int Order() const { return mmx_; }
     ///@}
 
     /**

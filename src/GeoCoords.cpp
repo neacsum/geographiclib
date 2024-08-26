@@ -28,13 +28,13 @@ namespace GeographicLib {
     }
     if (sa.size() == 1) {
       int prec;
-      MGRS::Reverse(sa[0], _zone, _northp, _easting, _northing, prec, centerp);
-      UTMUPS::Reverse(_zone, _northp, _easting, _northing,
-                      _lat, _long, _gamma, _k);
+      MGRS::Reverse(sa[0], zone_, northp_, easting_, northing_, prec, centerp);
+      UTMUPS::Reverse(zone_, northp_, easting_, northing_,
+                      lat_, long_, gamma_, k_);
     } else if (sa.size() == 2) {
-      DMS::DecodeLatLon(sa[0], sa[1], _lat, _long, longfirst);
-      UTMUPS::Forward( _lat, _long,
-                       _zone, _northp, _easting, _northing, _gamma, _k);
+      DMS::DecodeLatLon(sa[0], sa[1], lat_, long_, longfirst);
+      UTMUPS::Forward( lat_, long_,
+                       zone_, northp_, easting_, northing_, gamma_, k_);
     } else if (sa.size() == 3) {
       unsigned zoneind, coordind;
       if (sa[0].size() > 0 && isalpha(sa[0][sa[0].size() - 1])) {
@@ -47,11 +47,11 @@ namespace GeographicLib {
         throw GeographicErr("Neither " + sa[0] + " nor " + sa[2]
                             + " of the form UTM/UPS Zone + Hemisphere"
                             + " (ex: 38n, 09s, n)");
-      UTMUPS::DecodeZone(sa[zoneind], _zone, _northp);
+      UTMUPS::DecodeZone(sa[zoneind], zone_, northp_);
       for (unsigned i = 0; i < 2; ++i)
-        (i ? _northing : _easting) = Utility::val<real>(sa[coordind + i]);
-      UTMUPS::Reverse(_zone, _northp, _easting, _northing,
-                      _lat, _long, _gamma, _k);
+        (i ? northing_ : easting_) = Utility::val<real>(sa[coordind + i]);
+      UTMUPS::Reverse(zone_, northp_, easting_, northing_,
+                      lat_, long_, gamma_, k_);
       FixHemisphere();
     } else
       throw GeographicErr("Coordinate requires 1, 2, or 3 elements");
@@ -61,16 +61,16 @@ namespace GeographicLib {
   string GeoCoords::GeoRepresentation(int prec, bool longfirst) const {
     using std::isnan;           // Needed for Centos 7, ubuntu 14
     prec = max(0, min(9 + Math::extra_digits(), prec) + 5);
-    return Utility::str(longfirst ? _long : _lat, prec) +
-      " " + Utility::str(longfirst ? _lat : _long, prec);
+    return Utility::str(longfirst ? long_ : lat_, prec) +
+      " " + Utility::str(longfirst ? lat_ : long_, prec);
   }
 
   string GeoCoords::DMSRepresentation(int prec, bool longfirst,
                                       char dmssep) const {
     prec = max(0, min(10 + Math::extra_digits(), prec) + 5);
-    return DMS::Encode(longfirst ? _long : _lat, unsigned(prec),
+    return DMS::Encode(longfirst ? long_ : lat_, unsigned(prec),
                        longfirst ? DMS::LONGITUDE : DMS::LATITUDE, dmssep) +
-      " " + DMS::Encode(longfirst ? _lat : _long, unsigned(prec),
+      " " + DMS::Encode(longfirst ? lat_ : long_, unsigned(prec),
                         longfirst ? DMS::LATITUDE : DMS::LONGITUDE, dmssep);
   }
 
@@ -78,7 +78,7 @@ namespace GeographicLib {
     // Max precision is um
     prec = max(-1, min(6, prec) + 5);
     string mgrs;
-    MGRS::Forward(_zone, _northp, _easting, _northing, _lat, prec, mgrs);
+    MGRS::Forward(zone_, northp_, easting_, northing_, lat_, prec, mgrs);
     return mgrs;
   }
 
@@ -86,7 +86,7 @@ namespace GeographicLib {
     // Max precision is um
     prec = max(-1, min(6, prec) + 5);
     string mgrs;
-    MGRS::Forward(_alt_zone, _northp, _alt_easting, _alt_northing, _lat, prec,
+    MGRS::Forward(alt_zone_, northp_, alt_easting_, alt_northing_, lat_, prec,
                   mgrs);
     return mgrs;
   }
@@ -116,7 +116,7 @@ namespace GeographicLib {
 
   string GeoCoords::UTMUPSRepresentation(int prec, bool abbrev) const {
     string utm;
-    UTMUPSString(_zone, _northp, _easting, _northing, prec, abbrev, utm);
+    UTMUPSString(zone_, northp_, easting_, northing_, prec, abbrev, utm);
     return utm;
   }
 
@@ -124,16 +124,16 @@ namespace GeographicLib {
                                          bool abbrev) const {
     real e, n;
     int z;
-    UTMUPS::Transfer(_zone, _northp, _easting, _northing,
-                     _zone,  northp,  e,        n,       z);
+    UTMUPS::Transfer(zone_, northp_, easting_, northing_,
+                     zone_,  northp,  e,        n,       z);
     string utm;
-    UTMUPSString(_zone, northp, e, n, prec, abbrev, utm);
+    UTMUPSString(zone_, northp, e, n, prec, abbrev, utm);
     return utm;
   }
 
   string GeoCoords::AltUTMUPSRepresentation(int prec, bool abbrev) const {
     string utm;
-    UTMUPSString(_alt_zone, _northp, _alt_easting, _alt_northing, prec,
+    UTMUPSString(alt_zone_, northp_, alt_easting_, alt_northing_, prec,
                  abbrev, utm);
     return utm;
   }
@@ -142,22 +142,22 @@ namespace GeographicLib {
                                             bool abbrev) const {
     real e, n;
     int z;
-    UTMUPS::Transfer(_alt_zone, _northp, _alt_easting, _alt_northing,
-                     _alt_zone,  northp,      e,            n,       z);
+    UTMUPS::Transfer(alt_zone_, northp_, alt_easting_, alt_northing_,
+                     alt_zone_,  northp,      e,            n,       z);
     string utm;
-    UTMUPSString(_alt_zone, northp, e, n, prec, abbrev, utm);
+    UTMUPSString(alt_zone_, northp, e, n, prec, abbrev, utm);
     return utm;
   }
 
   void GeoCoords::FixHemisphere() {
     using std::isnan;           // Needed for Centos 7, ubuntu 14
-    if (_lat == 0 || (_northp && _lat >= 0) || (!_northp && _lat < 0) ||
-        isnan(_lat))
+    if (lat_ == 0 || (northp_ && lat_ >= 0) || (!northp_ && lat_ < 0) ||
+        isnan(lat_))
       // Allow either hemisphere for equator
       return;
-    if (_zone != UTMUPS::UPS) {
-      _northing += (_northp ? 1 : -1) * UTMUPS::UTMShift();
-      _northp = !_northp;
+    if (zone_ != UTMUPS::UPS) {
+      northing_ += (northp_ ? 1 : -1) * UTMUPS::UTMShift();
+      northp_ = !northp_;
     } else
       throw GeographicErr("Hemisphere mixup");
   }

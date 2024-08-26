@@ -17,15 +17,15 @@ namespace GeographicLib {
   using namespace std;
 
   DST::DST(int N)
-    : _nN(N < 0 ? 0 : N)
-    , _fft(make_shared<fft_t>(fft_t(2 * _nN, false)))
+    : nN_(N < 0 ? 0 : N)
+    , fft_(make_shared<fft_t>(fft_t(2 * nN_, false)))
   {}
 
   void DST::reset(int N) {
     N = N < 0 ? 0 : N;
-    if (N == _nN) return;
-    _nN = N;
-    _fft->assign(2 * _nN, false);
+    if (N == nN_) return;
+    nN_ = N;
+    fft_->assign(2 * nN_, false);
   }
 
   void DST::fft_transform(real data[], real F[], bool centerp) const {
@@ -34,29 +34,29 @@ namespace GeographicLib {
     // Elements (0,N], resp. [0,N), of data should be set on input for centerp
     // = false, resp. true.  F must have a size of at least N and on output
     // elements [0,N) of F contain the transform.
-    if (_nN == 0) return;
+    if (nN_ == 0) return;
     if (centerp) {
-      for (int i = 0; i < _nN; ++i) {
-        data[_nN+i] = data[_nN-1-i];
-        data[2*_nN+i] = -data[i];
-        data[3*_nN+i] = -data[_nN-1-i];
+      for (int i = 0; i < nN_; ++i) {
+        data[nN_+i] = data[nN_-1-i];
+        data[2*nN_+i] = -data[i];
+        data[3*nN_+i] = -data[nN_-1-i];
       }
     } else {
       data[0] = 0;              // set [0]
-      for (int i = 1; i < _nN; ++i)
-        data[_nN+i] = data[_nN-i]; // set [N+1,2*N-1]
-      for (int i = 0; i < 2*_nN; ++i)
-        data[2*_nN+i] = -data[i]; // [2*N, 4*N-1]
+      for (int i = 1; i < nN_; ++i)
+        data[nN_+i] = data[nN_-i]; // set [N+1,2*N-1]
+      for (int i = 0; i < 2*nN_; ++i)
+        data[2*nN_+i] = -data[i]; // [2*N, 4*N-1]
     }
-    vector<complex<real>> ctemp(2*_nN);
-    _fft->transform_real(data, ctemp.data());
+    vector<complex<real>> ctemp(2*nN_);
+    fft_->transform_real(data, ctemp.data());
     if (centerp) {
-      real d = -Math::pi()/(4*_nN);
-      for (int i = 0, j = 1; i < _nN; ++i, j+=2)
+      real d = -Math::pi()/(4*nN_);
+      for (int i = 0, j = 1; i < nN_; ++i, j+=2)
         ctemp[j] *= exp(complex<real>(0, j*d));
     }
-    for (int i = 0, j = 1; i < _nN; ++i, j+=2) {
-      F[i] = -ctemp[j].imag() / (2*_nN);
+    for (int i = 0, j = 1; i < nN_; ++i, j+=2) {
+      F[i] = -ctemp[j].imag() / (2*nN_);
     }
   }
 
@@ -65,34 +65,34 @@ namespace GeographicLib {
     // should have size of at least 2*N.  On input elements [0,N) of F contain
     // the size N transform; on output elements [0,2*N) of F contain the size
     // 2*N transform.
-    fft_transform(data, F+_nN, true);
+    fft_transform(data, F+nN_, true);
     // Copy DST-IV order N tx to [0,N) elements of data
-    for (int i = 0; i < _nN; ++i) data[i] = F[i+_nN];
-    for (int i = _nN; i < 2*_nN; ++i)
+    for (int i = 0; i < nN_; ++i) data[i] = F[i+nN_];
+    for (int i = nN_; i < 2*nN_; ++i)
       // (DST-IV order N - DST-III order N) / 2
-      F[i] = (data[2*_nN-1-i] - F[2*_nN-1-i])/2;
-    for (int i = 0; i < _nN; ++i)
+      F[i] = (data[2*nN_-1-i] - F[2*nN_-1-i])/2;
+    for (int i = 0; i < nN_; ++i)
       // (DST-IV order N + DST-III order N) / 2
       F[i] = (data[i] + F[i])/2;
   }
 
   void DST::transform(function<real(real)> f, real F[]) const {
-    vector<real> data(4 * _nN);
-    real d = Math::pi()/(2 * _nN);
-    for (int i = 1; i <= _nN; ++i)
+    vector<real> data(4 * nN_);
+    real d = Math::pi()/(2 * nN_);
+    for (int i = 1; i <= nN_; ++i)
       data[i] = f( i * d );
     fft_transform(data.data(), F, false);
   }
 
   void DST::refine(function<real(real)> f, real F[]) const {
-    vector<real> data(4 * _nN);
-    real d = Math::pi()/(4 * _nN);
-    for (int i = 0; i < _nN; ++i)
+    vector<real> data(4 * nN_);
+    real d = Math::pi()/(4 * nN_);
+    for (int i = 0; i < nN_; ++i)
       data[i] = f( (2*i + 1) * d );
     fft_transform2(data.data(), F);
   }
 
-  Math::real DST::eval(real sinx, real cosx, const real F[], int N) {
+  real DST::eval(real sinx, real cosx, const real F[], int N) {
     // Evaluate
     // y = sum(F[i] * sin((2*i+1) * x), i, 0, N-1)
     // using Clenshaw summation.
@@ -109,7 +109,7 @@ namespace GeographicLib {
     return sinx * (y0 + y1);    // sin(x) * (y0 + y1)
   }
 
-  Math::real DST::integral(real sinx, real cosx, const real F[], int N) {
+  real DST::integral(real sinx, real cosx, const real F[], int N) {
     // Evaluate
     // y = -sum(F[i]/(2*i+1) * cos((2*i+1) * x), i, 0, N-1)
     // using Clenshaw summation.
@@ -124,7 +124,7 @@ namespace GeographicLib {
     return cosx * (y1 - y0);    // cos(x) * (y1 - y0)
   }
 
-  Math::real DST::integral(real sinx, real cosx, real siny, real cosy,
+  real DST::integral(real sinx, real cosx, real siny, real cosy,
                            const real F[], int N) {
     // return integral(siny, cosy, F, N) - integral(sinx, cosx, F, N);
     real

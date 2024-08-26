@@ -13,10 +13,10 @@ namespace GeographicLib {
 
   using namespace std;
 
-  Math::real CircularEngine::Value(bool gradp, real sl, real cl,
+  real CircularEngine::Value(bool gradp, real sl, real cl,
                                    real& gradx, real& grady, real& gradz) const
   {
-    gradp = _gradp && gradp;
+    gradp = gradp_ && gradp;
     const vector<real>& root( SphericalEngine::sqrttable() );
 
     // Initialize outer sum
@@ -26,59 +26,59 @@ namespace GeographicLib {
     real vrc = 0, vrc2 = 0, vrs = 0, vrs2 = 0;   // vr[N + 1], vr[N + 2]
     real vtc = 0, vtc2 = 0, vts = 0, vts2 = 0;   // vt[N + 1], vt[N + 2]
     real vlc = 0, vlc2 = 0, vls = 0, vls2 = 0;   // vl[N + 1], vl[N + 2]
-    for (int m = _mM; m >= 0; --m) {             // m = M .. 0
+    for (int m = mM_; m >= 0; --m) {             // m = M .. 0
       // Now Sc[m] = wc, Ss[m] = ws
       // Sc'[m] = wtc, Ss'[m] = wtc
       if (m) {
         real v, A, B;           // alpha[m], beta[m + 1]
-        switch (_norm) {
+        switch (norm_) {
         case FULL:
           v = root[2] * root[2 * m + 3] / root[m + 1];
-          A = cl * v * _uq;
-          B = - v * root[2 * m + 5] / (root[8] * root[m + 2]) * _uq2;
+          A = cl * v * uq_;
+          B = - v * root[2 * m + 5] / (root[8] * root[m + 2]) * uq2_;
           break;
         case SCHMIDT:
           v = root[2] * root[2 * m + 1] / root[m + 1];
-          A = cl * v * _uq;
-          B = - v * root[2 * m + 3] / (root[8] * root[m + 2]) * _uq2;
+          A = cl * v * uq_;
+          B = - v * root[2 * m + 3] / (root[8] * root[m + 2]) * uq2_;
           break;
         default:
           A = B = 0;
         }
-        v = A * vc  + B * vc2  +  _wc[m] ; vc2  = vc ; vc  = v;
-        v = A * vs  + B * vs2  +  _ws[m] ; vs2  = vs ; vs  = v;
+        v = A * vc  + B * vc2  +  wc_[m] ; vc2  = vc ; vc  = v;
+        v = A * vs  + B * vs2  +  ws_[m] ; vs2  = vs ; vs  = v;
         if (gradp) {
-          v = A * vrc + B * vrc2 +  _wrc[m]; vrc2 = vrc; vrc = v;
-          v = A * vrs + B * vrs2 +  _wrs[m]; vrs2 = vrs; vrs = v;
-          v = A * vtc + B * vtc2 +  _wtc[m]; vtc2 = vtc; vtc = v;
-          v = A * vts + B * vts2 +  _wts[m]; vts2 = vts; vts = v;
-          v = A * vlc + B * vlc2 + m*_ws[m]; vlc2 = vlc; vlc = v;
-          v = A * vls + B * vls2 - m*_wc[m]; vls2 = vls; vls = v;
+          v = A * vrc + B * vrc2 +  wrc_[m]; vrc2 = vrc; vrc = v;
+          v = A * vrs + B * vrs2 +  wrs_[m]; vrs2 = vrs; vrs = v;
+          v = A * vtc + B * vtc2 +  wtc_[m]; vtc2 = vtc; vtc = v;
+          v = A * vts + B * vts2 +  wts_[m]; vts2 = vts; vts = v;
+          v = A * vlc + B * vlc2 + m*ws_[m]; vlc2 = vlc; vlc = v;
+          v = A * vls + B * vls2 - m*wc_[m]; vls2 = vls; vls = v;
         }
       } else {
         real A, B, qs;
-        switch (_norm) {
+        switch (norm_) {
         case FULL:
-          A = root[3] * _uq;       // F[1]/(q*cl) or F[1]/(q*sl)
-          B = - root[15]/2 * _uq2; // beta[1]/q
+          A = root[3] * uq_;       // F[1]/(q*cl) or F[1]/(q*sl)
+          B = - root[15]/2 * uq2_; // beta[1]/q
           break;
         case SCHMIDT:
-          A = _uq;
-          B = - root[3]/2 * _uq2;
+          A = uq_;
+          B = - root[3]/2 * uq2_;
           break;
         default:
           A = B = 0;
         }
-        qs = _q / SphericalEngine::scale();
-        vc = qs * (_wc[m] + A * (cl * vc + sl * vs ) + B * vc2);
+        qs = q_ / SphericalEngine::scale();
+        vc = qs * (wc_[m] + A * (cl * vc + sl * vs ) + B * vc2);
         if (gradp) {
           qs /= _r;
           // The components of the gradient in circular coordinates are
           // r: dV/dr
           // theta: 1/r * dV/dtheta
           // lambda: 1/(r*u) * dV/dlambda
-          vrc =    - qs * (_wrc[m] + A * (cl * vrc + sl * vrs) + B * vrc2);
-          vtc =      qs * (_wtc[m] + A * (cl * vtc + sl * vts) + B * vtc2);
+          vrc =    - qs * (wrc_[m] + A * (cl * vrc + sl * vrs) + B * vrc2);
+          vtc =      qs * (wtc_[m] + A * (cl * vtc + sl * vts) + B * vtc2);
           vlc = qs / _u * (          A * (cl * vlc + sl * vls) + B * vlc2);
         }
       }

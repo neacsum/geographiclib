@@ -35,9 +35,8 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT PolarStereographic {
   private:
-    typedef Math::real real;
-    real _a, _f, _e2, _es, _e2m, _c;
-    real _k0;
+    real a_, f_, e2_, es_, e2m_, c_;
+    real k0_;
   public:
 
     /**
@@ -125,20 +124,20 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value used in
      *   the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * The central scale for the projection.  This is the value of \e k0 used
      * in the constructor and is the scale at the pole unless overridden by
      * PolarStereographic::SetScale.
      **********************************************************************/
-    Math::real CentralScale() const { return _k0; }
+    real CentralScale() const { return k0_; }
     ///@}
 
     /**

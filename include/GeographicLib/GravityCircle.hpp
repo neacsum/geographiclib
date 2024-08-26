@@ -40,7 +40,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT GravityCircle {
   private:
-    typedef Math::real real;
     enum mask {
       NONE                 = GravityModel::NONE,
       GRAVITY              = GravityModel::GRAVITY,
@@ -51,11 +50,11 @@ namespace GeographicLib {
       ALL                  = GravityModel::ALL,
     };
 
-    unsigned _caps;
-    real _a, _f, _lat, _h, _zZ, _pPx, _invR, _cpsi, _spsi,
-      _cphi, _sphi, _amodel, _gGMmodel, _dzonal0,
-      _corrmult, _gamma0, _gamma, _frot;
-    CircularEngine _gravitational, _disturbing, _correction;
+    unsigned caps_;
+    real a_, f_, lat_, h_, zZ_, pPx_, invR_, cpsi_, spsi_,
+      cphi_, sphi_, amodel_, gGMmodel_, dzonal0_,
+      corrmult_, gamma0_, gamma_, frot_;
+    CircularEngine gravitational_, disturbing_, correction_;
 
     GravityCircle(mask caps, real a, real f, real lat, real h,
                   real Z, real P, real cphi, real sphi,
@@ -67,11 +66,11 @@ namespace GeographicLib {
                   const CircularEngine& correction);
 
     friend class GravityModel; // GravityModel calls the private constructor
-    Math::real W(real slam, real clam,
+    real W(real slam, real clam,
                  real& gX, real& gY, real& gZ) const;
-    Math::real V(real slam, real clam,
+    real V(real slam, real clam,
                  real& gX, real& gY, real& gZ) const;
-    Math::real InternalT(real slam, real clam,
+    real InternalT(real slam, real clam,
                          real& deltaX, real& deltaY, real& deltaZ,
                          bool gradp, bool correct) const;
   public:
@@ -80,7 +79,7 @@ namespace GeographicLib {
      * uninitialized object which can be later replaced by the
      * GravityModel::Circle.
      **********************************************************************/
-    GravityCircle() : _a(-1) {}
+    GravityCircle() : a_(-1) {}
 
     /** \name Compute the gravitational field
      **********************************************************************/
@@ -100,7 +99,7 @@ namespace GeographicLib {
      *
      * The function includes the effects of the earth's rotation.
      **********************************************************************/
-    Math::real Gravity(real lon, real& gx, real& gy, real& gz) const;
+    real Gravity(real lon, real& gx, real& gy, real& gz) const;
 
     /**
      * Evaluate the gravity disturbance vector.
@@ -115,7 +114,7 @@ namespace GeographicLib {
      * @return \e T the corresponding disturbing potential
      *   (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real Disturbance(real lon, real& deltax, real& deltay, real& deltaz)
+    real Disturbance(real lon, real& deltax, real& deltay, real& deltaz)
       const;
 
     /**
@@ -129,7 +128,7 @@ namespace GeographicLib {
      * results of the NGA codes are reproduced accurately.  Details are given
      * in \ref gravitygeoid.
      **********************************************************************/
-    Math::real GeoidHeight(real lon) const;
+    real GeoidHeight(real lon) const;
 
     /**
      * Evaluate the components of the gravity anomaly vector using the
@@ -163,7 +162,7 @@ namespace GeographicLib {
      * @return \e W = \e V + &Phi; the sum of the gravitational and
      *   centrifugal potentials (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real W(real lon, real& gX, real& gY, real& gZ) const {
+    real W(real lon, real& gX, real& gY, real& gZ) const {
       real slam, clam;
       Math::sincosd(lon, slam, clam);
       return W(slam, clam, gX, gY, gZ);
@@ -183,7 +182,7 @@ namespace GeographicLib {
      * @return \e V = \e W - &Phi; the gravitational potential
      *   (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real V(real lon, real& GX, real& GY, real& GZ) const {
+    real V(real lon, real& GX, real& GY, real& GZ) const {
       real slam, clam;
       Math::sincosd(lon, slam, clam);
       return V(slam, clam, GX, GY, GZ);
@@ -203,7 +202,7 @@ namespace GeographicLib {
      * @return \e T = \e W - \e U the disturbing potential (also called the
      *   anomalous potential) (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real T(real lon, real& deltaX, real& deltaY, real& deltaZ)
+    real T(real lon, real& deltaX, real& deltaY, real& deltaZ)
       const {
       real slam, clam;
       Math::sincosd(lon, slam, clam);
@@ -217,7 +216,7 @@ namespace GeographicLib {
      * @return \e T = \e W - \e U the disturbing potential (also called the
      *   anomalous potential) (m<sup>2</sup> s<sup>&minus;2</sup>).
      **********************************************************************/
-    Math::real T(real lon) const {
+    real T(real lon) const {
       real slam, clam, dummy;
       Math::sincosd(lon, slam, clam);
       return InternalT(slam, clam, dummy, dummy, dummy, false, true);
@@ -231,47 +230,47 @@ namespace GeographicLib {
     /**
      * @return true if the object has been initialized.
      **********************************************************************/
-    bool Init() const { return _a > 0; }
+    bool Init() const { return a_ > 0; }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value inherited from the GravityModel object used in the
      *   constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const
-    { return Init() ? _a : Math::NaN(); }
+    real EquatorialRadius() const
+    { return Init() ? a_ : Math::NaN(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the GravityModel object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const
-    { return Init() ? _f : Math::NaN(); }
+    real Flattening() const
+    { return Init() ? f_ : Math::NaN(); }
 
     /**
      * @return the latitude of the circle (degrees).
      **********************************************************************/
-    Math::real Latitude() const
-    { return Init() ? _lat : Math::NaN(); }
+    real Latitude() const
+    { return Init() ? lat_ : Math::NaN(); }
 
     /**
      * @return the height of the circle (meters).
      **********************************************************************/
-    Math::real Height() const
-    { return Init() ? _h : Math::NaN(); }
+    real Height() const
+    { return Init() ? h_ : Math::NaN(); }
 
     /**
      * @return \e caps the computational capabilities that this object was
      *   constructed with.
      **********************************************************************/
-    unsigned Capabilities() const { return _caps; }
+    unsigned Capabilities() const { return caps_; }
 
     /**
      * @param[in] testcaps a set of bitor'ed GravityModel::mask values.
      * @return true if the GravityCircle object has all these capabilities.
      **********************************************************************/
     bool Capabilities(unsigned testcaps) const {
-      return (_caps & testcaps) == testcaps;
+      return (caps_ & testcaps) == testcaps;
     }
     ///@}
   };

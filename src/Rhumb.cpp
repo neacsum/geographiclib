@@ -16,15 +16,15 @@ namespace GeographicLib {
   using namespace std;
 
   Rhumb::Rhumb(real a, real f, bool exact)
-    : _aux(a, f)
-    , _exact(exact)
-    , _a(a)
-    , _f(f)
-    , _n(_f / (2 - _f))
-    , _rm(_aux.RectifyingRadius(_exact))
-    , _c2(_aux.AuthalicRadiusSquared(_exact) * Math::degree())
-    , _lL(_exact ? 8 : Lmax_)   // 8 is starting size for DFT fit
-    , _pP(_lL)
+    : aux_(a, f)
+    , exact_(exact)
+    , a_(a)
+    , f_(f)
+    , n_(f_ / (2 - f_))
+    , rm_(aux_.RectifyingRadius(exact_))
+    , c2_(aux_.AuthalicRadiusSquared(exact_) * Math::degree())
+    , lL_(exact_ ? 8 : Lmax_)   // 8 is starting size for DFT fit
+    , pP_(lL_)
   {
     AreaCoeffs();
   }
@@ -37,10 +37,10 @@ namespace GeographicLib {
 
   void Rhumb::AreaCoeffs() {
     // Set up coefficients for area calculation
-    if (_exact) {
+    if (exact_) {
       // Compute coefficients by Fourier transform of integrand
       static const real eps = numeric_limits<real>::epsilon()/2;
-      qIntegrand f(_aux);
+      qIntegrand f(aux_);
       int L = 4;
       vector<real> c(L);
       DST fft(L); fft.transform(f, c.data()); L *= 2;
@@ -51,25 +51,25 @@ namespace GeographicLib {
       //
       // 64 = digits for long double, 6 = 12 - log2(64)
       int Lmax = 1<<(int(ceil(log2(max(Math::digits(), 64)))) + 6);
-      for (_lL = 0; L <= Lmax && _lL == 0; L *=2) {
+      for (lL_ = 0; L <= Lmax && lL_ == 0; L *=2) {
         fft.reset(L/2); c.resize(L); fft.refine(f, c.data());
-        _pP.resize(L);
+        pP_.resize(L);
         for (int l = 0, k = -1; l < L; ++l) {
           // Compute Fourier coefficients of integral
-          _pP[l] = (c[l] + (l+1 < L ? c[l+1] : 0)) / (-4 * (l+1));
-          if (fabs(_pP[l]) <= eps) {
+          pP_[l] = (c[l] + (l+1 < L ? c[l+1] : 0)) / (-4 * (l+1));
+          if (fabs(pP_[l]) <= eps) {
             if (k < 0) k = l;   // mark as first small value
           } else
             k = -1;             // run interrupted
           if (k >= 0 && l - k + 1 >= (l + 1 + 7) / 8) {
             // run of small values of at least l/8?
-            _lL = l + 1; _pP.resize(_lL); break;
+            lL_ = l + 1; pP_.resize(lL_); break;
           }
         }
-        // loop exits if _lL > 0
+        // loop exits if lL_ > 0
       }
-      if (_lL == 0)          // Hasn't converged -- just use the values we have
-        _lL = int(_pP.size());
+      if (lL_ == 0)          // Hasn't converged -- just use the values we have
+        lL_ = int(pP_.size());
     } else {
       // Use series expansions in n for Fourier coeffients of the integral
       // See "Series expansions for computing rhumb areas"
@@ -152,8 +152,8 @@ namespace GeographicLib {
       int o = 0;
       for (int l = 0; l < Lmax_; ++l) {
         int m = Lmax_ - l - 1;
-        d *= _n;
-        _pP[l] = d * Math::polyval(m, coeffs + o, _n);
+        d *= n_;
+        pP_[l] = d * Math::polyval(m, coeffs + o, n_);
         o += m + 1;
       }
     }
@@ -163,7 +163,7 @@ namespace GeographicLib {
   Rhumb::qIntegrand::qIntegrand(const AuxLatitude& aux)
     : _aux(aux) {}
 
-  Math::real Rhumb::qIntegrand::operator()(real beta) const {
+  real Rhumb::qIntegrand::operator()(real beta) const {
     // pbeta(beta) = integrate(q(beta), beta)
     //   q(beta) = (1-f) * (sin(xi) - sin(chi)) / cos(phi)
     //           = (1-f) * (cos(chi) - cos(xi)) / cos(phi) *
@@ -207,8 +207,8 @@ namespace GeographicLib {
                          real& s12, real& azi12, real& S12) const {
     using std::isinf;           // Needed for Centos 7, ubuntu 14
     AuxAngle phi1(AuxAngle::degrees(lat1)), phi2(AuxAngle::degrees(lat2)),
-      chi1(_aux.Convert(_aux.PHI, _aux.CHI, phi1, _exact)),
-      chi2(_aux.Convert(_aux.PHI, _aux.CHI, phi2, _exact));
+      chi1(aux_.Convert(aux_.PHI, aux_.CHI, phi1, exact_)),
+      chi2(aux_.Convert(aux_.PHI, aux_.CHI, phi2, exact_));
     real
       lon12 = Math::AngDiff(lon1, lon2),
       lam12 = lon12 * Math::degree<real>(),
@@ -219,22 +219,22 @@ namespace GeographicLib {
       azi12 = Math::atan2d(lam12, psi12);
     if (outmask & DISTANCE) {
       if (isinf(psi1) || isinf(psi2)) {
-        s12 = fabs(_aux.Convert(AuxLatitude::PHI, AuxLatitude::MU,
-                                phi2, _exact).radians() -
-                   _aux.Convert(AuxLatitude::PHI, AuxLatitude::MU,
-                                phi1, _exact).radians()) * _rm;
+        s12 = fabs(aux_.Convert(AuxLatitude::PHI, AuxLatitude::MU,
+                                phi2, exact_).radians() -
+                   aux_.Convert(AuxLatitude::PHI, AuxLatitude::MU,
+                                phi1, exact_).radians()) * rm_;
       } else {
       real h = hypot(lam12, psi12);
       // dmu/dpsi = dmu/dchi / dpsi/dchi
-      real dmudpsi = _exact ?
-        _aux.DRectifying(phi1, phi2) / _aux.DIsometric(phi1, phi2) :
-        _aux.DConvert(AuxLatitude::CHI, AuxLatitude::MU, chi1, chi2)
+      real dmudpsi = exact_ ?
+        aux_.DRectifying(phi1, phi2) / aux_.DIsometric(phi1, phi2) :
+        aux_.DConvert(AuxLatitude::CHI, AuxLatitude::MU, chi1, chi2)
         / DAuxLatitude::Dlam(chi1.tan(), chi2.tan());
-      s12 = h * dmudpsi * _rm;
+      s12 = h * dmudpsi * rm_;
       }
     }
     if (outmask & AREA)
-      S12 = _c2 * lon12 * MeanSinXi(chi1, chi2);
+      S12 = c2_ * lon12 * MeanSinXi(chi1, chi2);
   }
 
   RhumbLine Rhumb::Line(real lat1, real lon1, real azi12) const
@@ -245,22 +245,22 @@ namespace GeographicLib {
                         real& lat2, real& lon2, real& S12) const
   { Line(lat1, lon1, azi12).GenPosition(s12, outmask, lat2, lon2, S12); }
 
-  Math::real Rhumb::MeanSinXi(const AuxAngle& chix, const AuxAngle& chiy)
+  real Rhumb::MeanSinXi(const AuxAngle& chix, const AuxAngle& chiy)
     const {
     AuxAngle
-      phix (_aux.Convert(_aux.CHI, _aux.PHI , chix, _exact)),
-      phiy (_aux.Convert(_aux.CHI, _aux.PHI , chiy, _exact)),
-      betax(_aux.Convert(_aux.PHI, _aux.BETA, phix, _exact).normalized()),
-      betay(_aux.Convert(_aux.PHI, _aux.BETA, phiy, _exact).normalized());
+      phix (aux_.Convert(aux_.CHI, aux_.PHI , chix, exact_)),
+      phiy (aux_.Convert(aux_.CHI, aux_.PHI , chiy, exact_)),
+      betax(aux_.Convert(aux_.PHI, aux_.BETA, phix, exact_).normalized()),
+      betay(aux_.Convert(aux_.PHI, aux_.BETA, phiy, exact_).normalized());
     real DpbetaDbeta =
       DAuxLatitude::DClenshaw(false,
                         betay.radians() - betax.radians(),
                         betax.y(), betax.x(), betay.y(), betay.x(),
-                        _pP.data(), _lL),
+                        pP_.data(), lL_),
       tx = chix.tan(), ty = chiy.tan(),
-      DbetaDpsi = _exact ?
-      _aux.DParametric(phix, phiy) / _aux.DIsometric(phix, phiy) :
-      _aux.DConvert(AuxLatitude::CHI, AuxLatitude::BETA, chix, chiy) /
+      DbetaDpsi = exact_ ?
+      aux_.DParametric(phix, phiy) / aux_.DIsometric(phix, phiy) :
+      aux_.DConvert(AuxLatitude::CHI, AuxLatitude::BETA, chix, chiy) /
       DAuxLatitude::Dlam(tx, ty);
     return DAuxLatitude::Dp0Dpsi(tx, ty) + DpbetaDbeta * DbetaDpsi;
   }
@@ -273,43 +273,43 @@ namespace GeographicLib {
   {
     Math::sincosd(_azi12, _salp, _calp);
     _phi1 = AuxAngle::degrees(lat1);
-    _mu1 = _rh._aux.Convert(AuxLatitude::PHI, AuxLatitude::MU,
-                            _phi1, _rh._exact).degrees();
-    _chi1 = _rh._aux.Convert(AuxLatitude::PHI, AuxLatitude::CHI,
-                             _phi1, _rh._exact);
+    _mu1 = _rh.aux_.Convert(AuxLatitude::PHI, AuxLatitude::MU,
+                            _phi1, _rh.exact_).degrees();
+    _chi1 = _rh.aux_.Convert(AuxLatitude::PHI, AuxLatitude::CHI,
+                             _phi1, _rh.exact_);
     _psi1 = _chi1.lam();
   }
 
   void RhumbLine::GenPosition(real s12, unsigned outmask,
                               real& lat2, real& lon2, real& S12) const {
     real
-      r12 = s12 / (_rh._rm * Math::degree()), // scaled distance in degrees
+      r12 = s12 / (_rh.rm_ * Math::degree()), // scaled distance in degrees
       mu12 = r12 * _calp,
       mu2 = _mu1 + mu12;
     real lat2x, lon2x;
-    if (fabs(mu2) <= Math::qd) {
+    if (fabs(mu2) <= 90) {
       AuxAngle mu2a(AuxAngle::degrees(mu2)),
-        phi2(_rh._aux.Convert(AuxLatitude::MU, AuxLatitude::PHI,
-                              mu2a, _rh._exact)),
-        chi2(_rh._aux.Convert(AuxLatitude::PHI, AuxLatitude::CHI,
-                              phi2, _rh._exact));
+        phi2(_rh.aux_.Convert(AuxLatitude::MU, AuxLatitude::PHI,
+                              mu2a, _rh.exact_)),
+        chi2(_rh.aux_.Convert(AuxLatitude::PHI, AuxLatitude::CHI,
+                              phi2, _rh.exact_));
       lat2x = phi2.degrees();
-      real dmudpsi = _rh._exact ?
-        _rh._aux.DRectifying(_phi1, phi2) / _rh._aux.DIsometric(_phi1, phi2) :
-        _rh._aux.DConvert(AuxLatitude::CHI, AuxLatitude::MU, _chi1, chi2)
+      real dmudpsi = _rh.exact_ ?
+        _rh.aux_.DRectifying(_phi1, phi2) / _rh.aux_.DIsometric(_phi1, phi2) :
+        _rh.aux_.DConvert(AuxLatitude::CHI, AuxLatitude::MU, _chi1, chi2)
         / DAuxLatitude::Dlam(_chi1.tan(), chi2.tan());
       lon2x = r12 * _salp / dmudpsi;
       if (outmask & AREA)
-        S12 = _rh._c2 * lon2x * _rh.MeanSinXi(_chi1, chi2);
+        S12 = _rh.c2_ * lon2x * _rh.MeanSinXi(_chi1, chi2);
       lon2x = outmask & LONG_UNROLL ? _lon1 + lon2x :
         Math::AngNormalize(Math::AngNormalize(_lon1) + lon2x);
     } else {
       // Reduce to the interval [-180, 180)
       mu2 = Math::AngNormalize(mu2);
       // Deal with points on the anti-meridian
-      if (fabs(mu2) > Math::qd) mu2 = Math::AngNormalize(Math::hd - mu2);
-      lat2x = _rh._aux.Convert(AuxLatitude::MU, AuxLatitude::PHI,
-                               AuxAngle::degrees(mu2), _rh._exact).degrees();
+      if (fabs(mu2) > 90) mu2 = Math::AngNormalize(180 - mu2);
+      lat2x = _rh.aux_.Convert(AuxLatitude::MU, AuxLatitude::PHI,
+                               AuxAngle::degrees(mu2), _rh.exact_).degrees();
       lon2x = Math::NaN();
       if (outmask & AREA)
         S12 = Math::NaN();

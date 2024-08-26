@@ -19,17 +19,16 @@ namespace GeographicLib {
 
   void GARS::Forward(real lat, real lon, int prec, string& gars) {
     using std::isnan;           // Needed for Centos 7, ubuntu 14
-    if (fabs(lat) > Math::qd)
-      throw GeographicErr("Latitude " + Utility::str(lat)
-                          + "d not in [-" + to_string(Math::qd)
-                          + "d, " + to_string(Math::qd) + "d]");
+    if (fabs (lat) > 90)
+      throw GeographicErr ("Latitude " + Utility::str (lat)
+                          + "d not in [-90d, +90d]");
     if (isnan(lat) || isnan(lon)) {
       gars = "INVALID";
       return;
     }
     lon = Math::AngNormalize(lon);
-    if (lon == Math::hd) lon = -Math::hd; // lon now in [-180,180)
-    if (lat == Math::qd) lat *= (1 - numeric_limits<real>::epsilon() / 2);
+    if (lon == 180) lon = -180; // lon now in [-180,180)
+    if (lat == 90) lat *= (1 - numeric_limits<real>::epsilon() / 2);
     prec = max(0, min(int(maxprec_), prec));
     int
       x = int(floor(lon * m_)) - lonorig_ * m_,
@@ -79,7 +78,7 @@ namespace GeographicLib {
         throw GeographicErr("GARS must start with 3 digits " + gars);
       ilon = ilon * baselon_ + k;
     }
-    if (!(ilon >= 1 && ilon <= 2 * Math::td))
+    if (!(ilon >= 1 && ilon <= 2 * 360))
         throw GeographicErr("Initial digits in GARS must lie in [1, 720] " +
                             gars);
     --ilon;
@@ -90,7 +89,7 @@ namespace GeographicLib {
         throw GeographicErr("Illegal letters in GARS " + gars.substr(3,2));
       ilat = ilat * baselat_ + k;
     }
-    if (!(ilat < Math::td))
+    if (!(ilat < 360))
       throw  GeographicErr("GARS letters must lie in [AA, QZ] " + gars);
     real
       unit = mult1_,

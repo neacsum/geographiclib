@@ -21,15 +21,15 @@ namespace GeographicLib {
   Gnomonic::Gnomonic(const Geodesic& earth)
     : eps0_(numeric_limits<real>::epsilon())
     , eps_(real(0.01) * sqrt(eps0_))
-    , _earth(earth)
-    , _a(_earth.EquatorialRadius())
-    , _f(_earth.Flattening())
+    , earth_(earth)
+    , a_(earth_.EquatorialRadius())
+    , f_(earth_.Flattening())
   {}
 
   void Gnomonic::Forward(real lat0, real lon0, real lat, real lon,
                          real& x, real& y, real& azi, real& rk) const {
     real azi0, m, M, t;
-    _earth.GenInverse(lat0, lon0, lat, lon,
+    earth_.GenInverse(lat0, lon0, lat, lon,
                       Geodesic::AZIMUTH | Geodesic::REDUCEDLENGTH |
                       Geodesic::GEODESICSCALE,
                       t, azi0, azi, m, M, t, t);
@@ -48,11 +48,11 @@ namespace GeographicLib {
     real
       azi0 = Math::atan2d(x, y),
       rho = hypot(x, y),
-      s = _a * atan(rho/_a);
-    bool little = rho <= _a;
+      s = a_ * atan(rho/a_);
+    bool little = rho <= a_;
     if (!little)
       rho = 1/rho;
-    GeodesicLine line(_earth.Line(lat0, lon0, azi0,
+    GeodesicLine line(earth_.Line(lat0, lon0, azi0,
                                   Geodesic::LATITUDE | Geodesic::LONGITUDE |
                                   Geodesic::AZIMUTH | Geodesic::DISTANCE_IN |
                                   Geodesic::REDUCEDLENGTH |
@@ -70,7 +70,7 @@ namespace GeographicLib {
       real ds = little ? (m - rho * M) * M : (rho * m - M) * m;
       s -= ds;
       // Reversed test to allow escape with NaNs
-      if (!(fabs(ds) >= eps_ * _a))
+      if (!(fabs(ds) >= eps_ * a_))
         ++trip;
     }
     if (trip) {

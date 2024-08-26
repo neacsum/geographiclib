@@ -74,7 +74,6 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT UTMUPS {
   private:
-    typedef Math::real real;
     static const int falseeasting_[4];
     static const int falsenorthing_[4];
     static const int mineasting_[4];
@@ -391,7 +390,7 @@ namespace GeographicLib {
      * @return shift (meters) necessary to align north and south halves of a
      * UTM zone (10<sup>7</sup>).
      **********************************************************************/
-    static Math::real UTMShift();
+    static real UTMShift();
 
     /** \name Inspector functions
      **********************************************************************/
@@ -402,7 +401,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    static Math::real EquatorialRadius()
+    static real EquatorialRadius()
     { return Constants::WGS84_a(); }
 
     /**
@@ -411,7 +410,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the UTM and UPS projections are
      * based on this ellipsoid.)
      **********************************************************************/
-    static Math::real Flattening()
+    static real Flattening()
     { return Constants::WGS84_f(); }
     ///@}
 

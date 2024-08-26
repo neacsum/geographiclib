@@ -37,7 +37,6 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT OSGB {
   private:
-    typedef Math::real real;
     static const char* const letters_;
     static const char* const digits_;
     static const TransverseMercator& OSGBTM();
@@ -179,7 +178,7 @@ namespace GeographicLib {
      * of Britain; see Section A.1 (footnote 10 on p. 44) of <i>A guide to
      * coordinate systems in Great Britain</i>, v3.6 (2020).
      **********************************************************************/
-    static Math::real EquatorialRadius() {
+    static real EquatorialRadius() {
       // result is about 6377563.3960320664406 m
       using std::pow;
       return pow(real(10), real(48401603 - 100000000) / 100000000)
@@ -194,7 +193,7 @@ namespace GeographicLib {
      * 7767/2324857 = 1/299.32496459...  (The Airy 1830 value is returned
      * because the OSGB projection is based on this ellipsoid.)
      **********************************************************************/
-    static Math::real Flattening()
+    static real Flattening()
     { return real(20923713 - 20853810) / real(20923713); }
 
     /**
@@ -203,7 +202,7 @@ namespace GeographicLib {
      * C. J. Mugnier, Grids &amp; Datums, PE&amp;RS, Oct. 2003, states that
      * this is defined as 10<sup>9.9998268&minus;10</sup>.
      **********************************************************************/
-    static Math::real CentralScale() {
+    static real CentralScale() {
       using std::pow;
       return pow(real(10), real(9998268 - 10000000) / 10000000);
     }
@@ -211,23 +210,23 @@ namespace GeographicLib {
     /**
      * @return latitude of the origin for the OSGB projection (49 degrees).
      **********************************************************************/
-    static Math::real OriginLatitude() { return real(49); }
+    static real OriginLatitude() { return real(49); }
 
     /**
      * @return longitude of the origin for the OSGB projection (&minus;2
      *   degrees).
      **********************************************************************/
-    static Math::real OriginLongitude() { return real(-2); }
+    static real OriginLongitude() { return real(-2); }
 
     /**
      * @return false northing the OSGB projection (&minus;100000 meters).
      **********************************************************************/
-    static Math::real FalseNorthing() { return real(-100000); }
+    static real FalseNorthing() { return real(-100000); }
 
     /**
      * @return false easting the OSGB projection (400000 meters).
      **********************************************************************/
-    static Math::real FalseEasting() { return real(400000); }
+    static real FalseEasting() { return real(400000); }
     ///@}
 
   };

@@ -53,20 +53,20 @@ namespace GeographicLib {
     , tol2_(sqrt(tol0_))
     , tolb_(tol0_)              // Check on bisection interval
     , xthresh_(1000 * tol2_)
-    , _a(a)
-    , _f(f)
-    , _f1(1 - _f)
-    , _e2(_f * (2 - _f))
-    , _ep2(_e2 / Math::sq(_f1)) // e2 / (1 - e2)
-    , _n(_f / ( 2 - _f))
-    , _b(_a * _f1)
+    , a_(a)
+    , f_(f)
+    , f1_(1 - f_)
+    , e2_(f_ * (2 - f_))
+    , ep2_(e2_ / Math::sq(f1_)) // e2 / (1 - e2)
+    , n_(f_ / ( 2 - f_))
+    , b_(a_ * f1_)
       // The Geodesic class substitutes atanh(sqrt(e2)) for asinh(sqrt(ep2)) in
-      // the definition of _c2.  The latter is more accurate for very oblate
+      // the definition of c2_.  The latter is more accurate for very oblate
       // ellipsoids (which the Geodesic class does not attempt to handle).
-    , _c2((Math::sq(_a) + Math::sq(_b) *
-           (_f == 0 ? 1 :
-            (_f > 0 ? asinh(sqrt(_ep2)) : atan(sqrt(-_e2))) /
-            sqrt(fabs(_e2))))/2) // authalic radius squared
+    , c2_((Math::sq(a_) + Math::sq(b_) *
+           (f_ == 0 ? 1 :
+            (f_ > 0 ? asinh(sqrt(ep2_)) : atan(sqrt(-e2_))) /
+            sqrt(fabs(e2_))))/2) // authalic radius squared
       // The sig12 threshold for "really short".  Using the auxiliary sphere
       // solution with dnm computed at (bet1 + bet2) / 2, the relative error in
       // the azimuth consistency check is sig12^2 * abs(f) * min(1, 1-f/2) / 2.
@@ -77,12 +77,12 @@ namespace GeographicLib {
       // sig12 = etol2.  Here 0.1 is a safety factor (error decreased by 100)
       // and max(0.001, abs(f)) stops etol2 getting too large in the nearly
       // spherical case.
-    , _etol2(real(0.1) * tol2_ /
-             sqrt( fmax(real(0.001), fabs(_f)) * fmin(real(1), 1 - _f/2) / 2 ))
+    , etol2_(real(0.1) * tol2_ /
+             sqrt( fmax(real(0.001), fabs(f_)) * fmin(real(1), 1 - f_/2) / 2 ))
   {
-    if (!(isfinite(_a) && _a > 0))
+    if (!(isfinite(a_) && a_ > 0))
       throw GeographicErr("Equatorial radius is not positive");
-    if (!(isfinite(_b) && _b > 0))
+    if (!(isfinite(b_) && b_ > 0))
       throw GeographicErr("Polar semi-axis is not positive");
 
     // Required number of terms in DST for full accuracy for all precisions as
@@ -371,7 +371,7 @@ namespace GeographicLib {
 #else
 #error "Bad value for GEOGRAPHICLIB_PRECISION"
 #endif
-    real n = ndiv * _n;         // n in [-ndiv, ndiv]
+    real n = ndiv * n_;         // n in [-ndiv, ndiv]
     int j = ndiv + int(n < 0 ? floor(n) : ceil(n)); // j in [0, 2*ndiv]
     int N = int(narr[j]);
     // Decode 0,1,2,3,4,5... -> 2,3,4,6,8,12...
@@ -384,8 +384,8 @@ namespace GeographicLib {
       while (N < M) N = N % 3 == 0 ? 4*N/3 : 3*N/2;
     }
 #endif
-    _fft.reset(N);
-    _nC4 = N;
+    fft_.reset(N);
+    nC4_ = N;
   }
 
   const GeodesicExact& GeodesicExact::WGS84() {
@@ -399,7 +399,7 @@ namespace GeographicLib {
     return GeodesicLineExact(*this, lat1, lon1, azi1, caps);
   }
 
-  Math::real GeodesicExact::GenDirect(real lat1, real lon1, real azi1,
+  real GeodesicExact::GenDirect(real lat1, real lon1, real azi1,
                                       bool arcmode, real s12_a12,
                                       unsigned outmask,
                                       real& lat2, real& lon2, real& azi2,
@@ -440,7 +440,7 @@ namespace GeographicLib {
     return GenDirectLine(lat1, lon1, azi1, true, a12, caps);
   }
 
-  Math::real GeodesicExact::GenInverse(real lat1, real lon1,
+  real GeodesicExact::GenInverse(real lat1, real lon1,
                                        real lat2, real lon2,
                                        unsigned outmask, real& s12,
                                        real& salp1, real& calp1,
@@ -461,7 +461,7 @@ namespace GeographicLib {
     // Calculate sincos of lon12 + error (this applies AngRound internally).
     Math::sincosde(lon12, lon12s, slam12, clam12);
     // the supplementary longitude difference
-    lon12s = (Math::hd - lon12) - lon12s;
+    lon12s = (180 - lon12) - lon12s;
 
     // If really close to the equator, treat as on equator.
     lat1 = Math::AngRound(Math::LatFix(lat1));
@@ -492,14 +492,14 @@ namespace GeographicLib {
     real sbet1, cbet1, sbet2, cbet2, s12x, m12x;
     // Initialize for the meridian.  No longitude calculation is done in this
     // case to let the parameter default to 0.
-    EllipticFunction E(-_ep2);
+    EllipticFunction E(-ep2_);
 
-    Math::sincosd(lat1, sbet1, cbet1); sbet1 *= _f1;
+    Math::sincosd(lat1, sbet1, cbet1); sbet1 *= f1_;
     // Ensure cbet1 = +epsilon at poles; doing the fix on beta means that sig12
     // will be <= 2*tiny for two points at the same pole.
     Math::norm(sbet1, cbet1); cbet1 = fmax(tiny_, cbet1);
 
-    Math::sincosd(lat2, sbet2, cbet2); sbet2 *= _f1;
+    Math::sincosd(lat2, sbet2, cbet2); sbet2 *= f1_;
     // Ensure cbet2 = +epsilon at poles
     Math::norm(sbet2, cbet2); cbet2 = fmax(tiny_, cbet2);
 
@@ -520,14 +520,14 @@ namespace GeographicLib {
     }
 
     real
-      dn1 = (_f >= 0 ? sqrt(1 + _ep2 * Math::sq(sbet1)) :
-             sqrt(1 - _e2 * Math::sq(cbet1)) / _f1),
-      dn2 = (_f >= 0 ? sqrt(1 + _ep2 * Math::sq(sbet2)) :
-             sqrt(1 - _e2 * Math::sq(cbet2)) / _f1);
+      dn1 = (f_ >= 0 ? sqrt(1 + ep2_ * Math::sq(sbet1)) :
+             sqrt(1 - e2_ * Math::sq(cbet1)) / f1_),
+      dn2 = (f_ >= 0 ? sqrt(1 + ep2_ * Math::sq(sbet2)) :
+             sqrt(1 - e2_ * Math::sq(cbet2)) / f1_);
 
     real a12, sig12;
 
-    bool meridian = lat1 == -Math::qd || slam12 == 0;
+    bool meridian = lat1 == -90 || slam12 == 0;
 
     if (meridian) {
 
@@ -564,8 +564,8 @@ namespace GeographicLib {
             // Prevent negative s12 or m12 for short lines
             (sig12 < tol0_ && (s12x < 0 || m12x < 0)))
           sig12 = m12x = s12x = 0;
-        m12x *= _b;
-        s12x *= _b;
+        m12x *= b_;
+        s12x *= b_;
         a12 = sig12 / Math::degree();
       } else
         // m12 < 0, i.e., prolate and too close to anti-podal
@@ -576,16 +576,16 @@ namespace GeographicLib {
     real omg12 = 0, somg12 = 2, comg12 = 0;
     if (!meridian &&
         sbet1 == 0 &&   // and sbet2 == 0
-        (_f <= 0 || lon12s >= _f * Math::hd)) {
+        (f_ <= 0 || lon12s >= f_ * 180)) {
 
       // Geodesic runs along equator
       calp1 = calp2 = 0; salp1 = salp2 = 1;
-      s12x = _a * lam12;
-      sig12 = omg12 = lam12 / _f1;
-      m12x = _b * sin(sig12);
+      s12x = a_ * lam12;
+      sig12 = omg12 = lam12 / f1_;
+      m12x = b_ * sin(sig12);
       if (outmask & GEODESICSCALE)
         M12 = M21 = cos(sig12);
-      a12 = lon12 / _f1;
+      a12 = lon12 / f1_;
 
     } else if (!meridian) {
 
@@ -600,12 +600,12 @@ namespace GeographicLib {
 
       if (sig12 >= 0) {
         // Short lines (InverseStart sets salp2, calp2, dnm)
-        s12x = sig12 * _b * dnm;
-        m12x = Math::sq(dnm) * _b * sin(sig12 / dnm);
+        s12x = sig12 * b_ * dnm;
+        m12x = Math::sq(dnm) * b_ * sin(sig12 / dnm);
         if (outmask & GEODESICSCALE)
           M12 = M21 = cos(sig12 / dnm);
         a12 = sig12 / Math::degree();
-        omg12 = lam12 / (_f1 * dnm);
+        omg12 = lam12 / (f1_ * dnm);
       } else {
 
         // Newton's method.  This is a straightforward solution of f(alp1) =
@@ -705,8 +705,8 @@ namespace GeographicLib {
           Lengths(E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
                   cbet1, cbet2, outmask, s12x, m12x, dummy, M12, M21);
         }
-        m12x *= _b;
-        s12x *= _b;
+        m12x *= b_;
+        s12x *= b_;
         a12 = sig12 / Math::degree();
         if (outmask & AREA) {
           // omg12 = lam12 - domg12
@@ -730,19 +730,19 @@ namespace GeographicLib {
         calp0 = hypot(calp1, salp1 * sbet1); // calp0 > 0
       real alp12,
         // Multiplier = a^2 * e^2 * cos(alpha0) * sin(alpha0).
-        A4 = Math::sq(_a) * calp0 * salp0 * _e2;
+        A4 = Math::sq(a_) * calp0 * salp0 * e2_;
       if (A4 != 0) {
         real
-          k2 = Math::sq(calp0) * _ep2,
+          k2 = Math::sq(calp0) * ep2_,
           // From Lambda12: tan(bet) = tan(sig) * cos(alp)
           ssig1 = sbet1, csig1 = calp1 * cbet1,
           ssig2 = sbet2, csig2 = calp2 * cbet2;
         Math::norm(ssig1, csig1);
         Math::norm(ssig2, csig2);
-        I4Integrand i4(_ep2, k2);
-        vector<real> C4a(_nC4);
-        _fft.transform(i4, C4a.data());
-        S12 = A4 * DST::integral(ssig1, csig1, ssig2, csig2, C4a.data(), _nC4);
+        I4Integrand i4(ep2_, k2);
+        vector<real> C4a(nC4_);
+        fft_.transform(i4, C4a.data());
+        S12 = A4 * DST::integral(ssig1, csig1, ssig2, csig2, C4a.data(), nC4_);
       } else
         // Avoid problems with indeterminate sig1, sig2 on equator
         S12 = 0;
@@ -776,7 +776,7 @@ namespace GeographicLib {
         }
         alp12 = atan2(salp12, calp12);
       }
-      S12 += _c2 * alp12;
+      S12 += c2_ * alp12;
       S12 *= swapp * lonsign * latsign;
       // Convert -0 to 0
       S12 += 0;
@@ -797,7 +797,7 @@ namespace GeographicLib {
     return a12;
   }
 
-  Math::real GeodesicExact::GenInverse(real lat1, real lon1,
+  real GeodesicExact::GenInverse(real lat1, real lon1,
                                        real lat2, real lon2,
                                        unsigned outmask,
                                        real& s12, real& azi1, real& azi2,
@@ -837,7 +837,7 @@ namespace GeographicLib {
                               real cbet1, real cbet2, unsigned outmask,
                               real& s12b, real& m12b, real& m0,
                               real& M12, real& M21) const {
-    // Return m12b = (reduced length)/_b; also calculate s12b = distance/_b,
+    // Return m12b = (reduced length)/b_; also calculate s12b = distance/b_,
     // and m0 = coefficient of secular term in expression for reduced length.
 
     outmask &= OUT_ALL;
@@ -849,7 +849,7 @@ namespace GeographicLib {
     // e.g., s12b = m0 = M12 = M21 = dummy
 
     if (outmask & DISTANCE)
-      // Missing a factor of _b
+      // Missing a factor of b_
       s12b = E.E() / (Math::pi() / 2) *
         (sig12 + (E.deltaE(ssig2, csig2, dn2) - E.deltaE(ssig1, csig1, dn1)));
     if (outmask & (REDUCEDLENGTH | GEODESICSCALE)) {
@@ -859,7 +859,7 @@ namespace GeographicLib {
         (sig12 + (E.deltaD(ssig2, csig2, dn2) - E.deltaD(ssig1, csig1, dn1)));
       if (outmask & REDUCEDLENGTH) {
         m0 = m0x;
-        // Missing a factor of _b.  Add parens around (csig1 * ssig2) and
+        // Missing a factor of b_.  Add parens around (csig1 * ssig2) and
         // (ssig1 * csig2) to ensure accurate cancellation in the case of
         // coincident points.
         m12b = dn2 * (csig1 * ssig2) - dn1 * (ssig1 * csig2) -
@@ -867,14 +867,14 @@ namespace GeographicLib {
       }
       if (outmask & GEODESICSCALE) {
         real csig12 = csig1 * csig2 + ssig1 * ssig2;
-        real t = _ep2 * (cbet1 - cbet2) * (cbet1 + cbet2) / (dn1 + dn2);
+        real t = ep2_ * (cbet1 - cbet2) * (cbet1 + cbet2) / (dn1 + dn2);
         M12 = csig12 + (t * ssig2 - csig2 * J12) * ssig1 / dn1;
         M21 = csig12 - (t * ssig1 - csig1 * J12) * ssig2 / dn2;
       }
     }
   }
 
-  Math::real GeodesicExact::Astroid(real x, real y) {
+  real GeodesicExact::Astroid(real x, real y) {
     // Solve k^4+2*k^3-(x^2+y^2-1)*k^2-2*y^2*k-y^2 = 0 for positive root k.
     // This solution is adapted from Geocentric::Reverse.
     real k;
@@ -926,7 +926,7 @@ namespace GeographicLib {
     return k;
   }
 
-  Math::real GeodesicExact::InverseStart(EllipticFunction& E,
+  real GeodesicExact::InverseStart(EllipticFunction& E,
                                          real sbet1, real cbet1, real dn1,
                                          real sbet2, real cbet2, real dn2,
                                          real lam12, real slam12, real clam12,
@@ -952,8 +952,8 @@ namespace GeographicLib {
       // sin((bet1+bet2)/2)^2
       // =  (sbet1 + sbet2)^2 / ((sbet1 + sbet2)^2 + (cbet1 + cbet2)^2)
       sbetm2 /= sbetm2 + Math::sq(cbet1 + cbet2);
-      dnm = sqrt(1 + _ep2 * sbetm2);
-      real omg12 = lam12 / (_f1 * dnm);
+      dnm = sqrt(1 + ep2_ * sbetm2);
+      real omg12 = lam12 / (f1_ * dnm);
       somg12 = sin(omg12); comg12 = cos(omg12);
     } else {
       somg12 = slam12; comg12 = clam12;
@@ -968,7 +968,7 @@ namespace GeographicLib {
       ssig12 = hypot(salp1, calp1),
       csig12 = sbet1 * sbet2 + cbet1 * cbet2 * comg12;
 
-    if (shortline && ssig12 < _etol2) {
+    if (shortline && ssig12 < etol2_) {
       // really short lines
       salp2 = cbet1 * somg12;
       calp2 = sbet12 - cbet1 * sbet2 *
@@ -976,27 +976,27 @@ namespace GeographicLib {
       Math::norm(salp2, calp2);
       // Set return value
       sig12 = atan2(ssig12, csig12);
-    } else if (fabs(_n) > real(0.1) || // Skip astroid calc if too eccentric
+    } else if (fabs(n_) > real(0.1) || // Skip astroid calc if too eccentric
                csig12 >= 0 ||
-               ssig12 >= 6 * fabs(_n) * Math::pi() * Math::sq(cbet1)) {
+               ssig12 >= 6 * fabs(n_) * Math::pi() * Math::sq(cbet1)) {
       // Nothing to do, zeroth order spherical approximation is OK
     } else {
       // Scale lam12 and bet2 to x, y coordinate system where antipodal point
       // is at origin and singular point is at y = 0, x = -1.
       real x, y, lamscale, betscale;
       real lam12x = atan2(-slam12, -clam12); // lam12 - pi
-      if (_f >= 0) {            // In fact f == 0 does not get here
+      if (f_ >= 0) {            // In fact f == 0 does not get here
         // x = dlong, y = dlat
         {
-          real k2 = Math::sq(sbet1) * _ep2;
-          E.Reset(-k2, -_ep2, 1 + k2, 1 + _ep2);
-          lamscale = _e2/_f1 * cbet1 * 2 * E.H();
+          real k2 = Math::sq(sbet1) * ep2_;
+          E.Reset(-k2, -ep2_, 1 + k2, 1 + ep2_);
+          lamscale = e2_/f1_ * cbet1 * 2 * E.H();
         }
         betscale = lamscale * cbet1;
 
         x = lam12x / lamscale;
         y = sbet12a / betscale;
-      } else {                  // _f < 0
+      } else {                  // f_ < 0
         // x = dlat, y = dlong
         real
           cbet12a = cbet2 * cbet1 - sbet2 * sbet1,
@@ -1009,7 +1009,7 @@ namespace GeographicLib {
                 cbet1, cbet2, REDUCEDLENGTH, dummy, m12b, m0, dummy, dummy);
         x = -1 + m12b / (cbet1 * cbet2 * m0 * Math::pi());
         betscale = x < -real(0.01) ? sbet12a / x :
-          -_f * Math::sq(cbet1) * Math::pi();
+          -f_ * Math::sq(cbet1) * Math::pi();
         lamscale = betscale / cbet1;
         y = lam12x / lamscale;
       }
@@ -1017,7 +1017,7 @@ namespace GeographicLib {
       if (y > -tol1_ && x > -1 - xthresh_) {
         // strip near cut
         // Need real(x) here to cast away the volatility of x for min/max
-        if (_f >= 0) {
+        if (f_ >= 0) {
           salp1 = fmin(real(1), -x); calp1 = - sqrt(1 - Math::sq(salp1));
         } else {
           calp1 = fmax(real(x > -tol1_ ? 0 : -1), x);
@@ -1027,8 +1027,8 @@ namespace GeographicLib {
         // Estimate alp1, by solving the astroid problem.
         //
         // Could estimate alpha1 = theta + pi/2, directly, i.e.,
-        //   calp1 = y/k; salp1 = -x/(1+k);  for _f >= 0
-        //   calp1 = x/(1+k); salp1 = -y/k;  for _f < 0 (need to check)
+        //   calp1 = y/k; salp1 = -x/(1+k);  for f_ >= 0
+        //   calp1 = x/(1+k); salp1 = -y/k;  for f_ < 0 (need to check)
         //
         // However, it's better to estimate omg12 from astroid and use
         // spherical formula to compute alp1.  This reduces the mean number of
@@ -1060,7 +1060,7 @@ namespace GeographicLib {
         // Because omg12 is near pi, estimate work with omg12a = pi - omg12
         real k = Astroid(x, y);
         real
-          omg12a = lamscale * ( _f >= 0 ? -x * k/(1 + k) : -y * (1 + k)/k );
+          omg12a = lamscale * ( f_ >= 0 ? -x * k/(1 + k) : -y * (1 + k)/k );
         somg12 = sin(omg12a); comg12 = -cos(omg12a);
         // Update spherical estimate of alp1 using omg12 instead of lam12
         salp1 = cbet2 * somg12;
@@ -1076,7 +1076,7 @@ namespace GeographicLib {
     return sig12;
   }
 
-  Math::real GeodesicExact::Lambda12(real sbet1, real cbet1, real dn1,
+  real GeodesicExact::Lambda12(real sbet1, real cbet1, real dn1,
                                      real sbet2, real cbet2, real dn2,
                                      real salp1, real calp1,
                                      real slam120, real clam120,
@@ -1105,7 +1105,7 @@ namespace GeographicLib {
     ssig1 = sbet1; somg1 = salp0 * sbet1;
     csig1 = comg1 = calp1 * cbet1;
     // Without normalization we have schi1 = somg1.
-    cchi1 = _f1 * dn1 * comg1;
+    cchi1 = f1_ * dn1 * comg1;
     Math::norm(ssig1, csig1);
     // Math::norm(somg1, comg1); -- don't need to normalize!
     // Math::norm(schi1, cchi1); -- don't need to normalize!
@@ -1130,7 +1130,7 @@ namespace GeographicLib {
     ssig2 = sbet2; somg2 = salp0 * sbet2;
     csig2 = comg2 = calp2 * cbet2;
     // Without normalization we have schi2 = somg2.
-    cchi2 = _f1 * dn2 * comg2;
+    cchi2 = f1_ * dn2 * comg2;
     Math::norm(ssig2, csig2);
     // Math::norm(somg2, comg2); -- don't need to normalize!
     // Math::norm(schi2, cchi2); -- don't need to normalize!
@@ -1142,8 +1142,8 @@ namespace GeographicLib {
     // omg12 = omg2 - omg1, limit to [0, pi]
     somg12 = fmax(real(0), comg1 * somg2 - somg1 * comg2);
     comg12 =               comg1 * comg2 + somg1 * somg2;
-    real k2 = Math::sq(calp0) * _ep2;
-    E.Reset(-k2, -_ep2, 1 + k2, 1 + _ep2);
+    real k2 = Math::sq(calp0) * ep2_;
+    E.Reset(-k2, -ep2_, 1 + k2, 1 + ep2_);
     // chi12 = chi2 - chi1, limit to [0, pi]
     real
       schi12 = fmax(real(0), cchi1 * somg2 - somg1 * cchi2),
@@ -1151,7 +1151,7 @@ namespace GeographicLib {
     // eta = chi12 - lam120
     real eta = atan2(schi12 * clam120 - cchi12 * slam120,
                      cchi12 * clam120 + schi12 * slam120);
-    real deta12 = -_e2/_f1 * salp0 * E.H() / (Math::pi() / 2) *
+    real deta12 = -e2_/f1_ * salp0 * E.H() / (Math::pi() / 2) *
       (sig12 + (E.deltaH(ssig2, csig2, dn2) - E.deltaH(ssig1, csig1, dn1)));
     lam12 = eta + deta12;
     // domg12 = deta12 + chi12 - omg12
@@ -1159,26 +1159,26 @@ namespace GeographicLib {
                             cchi12 * comg12 + schi12 * somg12);
     if (diffp) {
       if (calp2 == 0)
-        dlam12 = - 2 * _f1 * dn1 / sbet1;
+        dlam12 = - 2 * f1_ * dn1 / sbet1;
       else {
         real dummy;
         Lengths(E, sig12, ssig1, csig1, dn1, ssig2, csig2, dn2,
                 cbet1, cbet2, REDUCEDLENGTH,
                 dummy, dlam12, dummy, dummy, dummy);
-        dlam12 *= _f1 / (calp2 * cbet2);
+        dlam12 *= f1_ / (calp2 * cbet2);
       }
     }
 
     return lam12;
   }
 
-  Math::real GeodesicExact::I4Integrand::asinhsqrt(real x) {
+  real GeodesicExact::I4Integrand::asinhsqrt(real x) {
     // return asinh(sqrt(x))/sqrt(x)
     return x == 0 ? 1 :
       (x > 0 ? asinh(sqrt(x))/sqrt(x) :
        asin(sqrt(-x))/sqrt(-x)); // NaNs end up here
   }
-  Math::real GeodesicExact::I4Integrand::t(real x) {
+  real GeodesicExact::I4Integrand::t(real x) {
     // This differs by from t as defined following Eq 61 in Karney (2013) by
     // the final subtraction of 1.  This changes nothing since Eq 61 uses the
     // difference of two evaluations of t and improves the accuracy(?).
@@ -1187,13 +1187,13 @@ namespace GeographicLib {
     // e2/(1-e2) + (atanh(e)/e - 1)
     return x + (sqrt(1 + x) * asinhsqrt(x) - 1);
   }
-  Math::real GeodesicExact::I4Integrand::td(real x) {
+  real GeodesicExact::I4Integrand::td(real x) {
     // d t(x) / dx
     return x == 0 ? 4/real(3) :
       // Group terms to minimize roundoff
       1 + (1 - asinhsqrt(x) / sqrt(1+x)) / (2*x);
   }
-  // Math::real GeodesicExact::I4Integrand::Dt(real x, real y) {
+  // real GeodesicExact::I4Integrand::Dt(real x, real y) {
   //   // ( t(x) - t(y) ) / (x - y)
   //   if (x == y) return td(x);
   //   if (x * y <= 0) return ( t(x) - t(y) ) / (x - y);
@@ -1208,7 +1208,7 @@ namespace GeographicLib {
   //     // NaNs fall through to here
   //     ( 1 - (asin (z)/z) / d1 - (asin (sx) + asin (sy)) / d2 );
   // }
-  Math::real GeodesicExact::I4Integrand::DtX(real y) const {
+  real GeodesicExact::I4Integrand::DtX(real y) const {
     // idiot version:
     // return ( tX - t(y) ) / (X - y);
     if (X == y) return tdX;
@@ -1234,7 +1234,7 @@ namespace GeographicLib {
     sXX1 = sX * sX1;
     asinhsX = X > 0 ? asinh(sX) : asin(sX); // atanh(e)
   }
-  Math::real GeodesicExact::I4Integrand::operator()(real sig) const {
+  real GeodesicExact::I4Integrand::operator()(real sig) const {
     real ssig = sin(sig);
     return - DtX(_k2 * Math::sq(ssig)) * ssig/2;
   }

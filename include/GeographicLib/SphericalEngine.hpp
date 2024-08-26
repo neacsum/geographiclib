@@ -39,7 +39,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT SphericalEngine {
   private:
-    typedef Math::real real;
     // CircularEngine needs access to sqrttable, scale
     friend class CircularEngine;
     // Return the table of the square roots of integers
@@ -194,14 +193,14 @@ namespace GeographicLib {
        * @param[in] k the one-dimensional index.
        * @return the value of the \e C coefficient.
        **********************************************************************/
-      Math::real Cv(int k) const { return *(_cCnm + k); }
+      real Cv(int k) const { return *(_cCnm + k); }
       /**
        * An element of \e S.
        *
        * @param[in] k the one-dimensional index.
        * @return the value of the \e S coefficient.
        **********************************************************************/
-      Math::real Sv(int k) const { return *(_sSnm + (k - (_nNx + 1))); }
+      real Sv(int k) const { return *(_sSnm + (k - (_nNx + 1))); }
       /**
        * An element of \e C with checking.
        *
@@ -212,7 +211,7 @@ namespace GeographicLib {
        * @return the value of the \e C coefficient multiplied by \e f in \e n
        *   and \e m are in range else 0.
        **********************************************************************/
-      Math::real Cv(int k, int n, int m, real f) const
+      real Cv(int k, int n, int m, real f) const
       { return m > _mmx || n > _nmx ? 0 : *(_cCnm + k) * f; }
       /**
        * An element of \e S with checking.
@@ -224,7 +223,7 @@ namespace GeographicLib {
        * @return the value of the \e S coefficient multiplied by \e f in \e n
        *   and \e m are in range else 0.
        **********************************************************************/
-      Math::real Sv(int k, int n, int m, real f) const
+      real Sv(int k, int n, int m, real f) const
       { return m > _mmx || n > _nmx ? 0 : *(_sSnm + (k - (_nNx + 1))) * f; }
 
       /**
@@ -309,7 +308,7 @@ namespace GeographicLib {
      * throws an exception.
      **********************************************************************/
     template<bool gradp, normalization norm, int L>
-      static Math::real Value(const coeff c[], const real f[],
+      static real Value(const coeff c[], const real f[],
                               real x, real y, real z, real a,
                               real& gradx, real& grady, real& gradz);
 

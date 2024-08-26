@@ -93,15 +93,14 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT TransverseMercator {
   private:
-    typedef Math::real real;
     static const int maxpow_ = GEOGRAPHICLIB_TRANSVERSEMERCATOR_ORDER;
     static const int numit_ = 5;
-    real _a, _f, _k0;
-    bool _exact;
-    real _e2, _es, _e2m,  _c, _n;
-    // _alp[0] and _bet[0] unused
-    real _a1, _b1, _alp[maxpow_ + 1], _bet[maxpow_ + 1];
-    TransverseMercatorExact _tmexact;
+    real a_, f_, k0_;
+    bool exact_;
+    real e2_, es_, e2m_,  c_, n_;
+    // alp_[0] and bet_[0] unused
+    real a1_, b1_, alp_[maxpow_ + 1], bet_[maxpow_ + 1];
+    TransverseMercatorExact tmexact_;
   public:
 
     /**
@@ -184,25 +183,25 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value used in
      *   the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return \e k0 central scale for the projection.  This is the value of \e
      *   k0 used in the constructor and is the scale on the central meridian.
      **********************************************************************/
-    Math::real CentralScale() const { return _k0; }
+    real CentralScale() const { return k0_; }
 
     /**
      * @return \e exact whether the exact formulation is used.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    bool Exact() const { return _exact; }
+    bool Exact() const { return exact_; }
     ///@}
 
     /**

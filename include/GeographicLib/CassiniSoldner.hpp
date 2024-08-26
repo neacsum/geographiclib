@@ -68,10 +68,9 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT CassiniSoldner {
   private:
-    typedef Math::real real;
-    Geodesic _earth;
-    GeodesicLine _meridian;
-    real _sbet0, _cbet0;
+    Geodesic earth_;
+    GeodesicLine meridian_;
+    real sbet0_, cbet0_;
     static const unsigned maxit_ = 10;
 
   public:
@@ -170,31 +169,31 @@ namespace GeographicLib {
     /**
      * @return true if the object has been initialized.
      **********************************************************************/
-    bool Init() const { return _meridian.Init(); }
+    bool Init() const { return meridian_.Init(); }
 
     /**
      * @return \e lat0 the latitude of origin (degrees).
      **********************************************************************/
-    Math::real LatitudeOrigin() const
-    { return _meridian.Latitude(); }
+    real LatitudeOrigin() const
+    { return meridian_.Latitude(); }
 
     /**
      * @return \e lon0 the longitude of origin (degrees).
      **********************************************************************/
-    Math::real LongitudeOrigin() const
-    { return _meridian.Longitude(); }
+    real LongitudeOrigin() const
+    { return meridian_.Longitude(); }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value inherited from the Geodesic object used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Geodesic object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
     ///@}
 
   };

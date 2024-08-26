@@ -31,11 +31,10 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT GARS {
   private:
-    typedef Math::real real;
     static const char* const digits_;
     static const char* const letters_;
-    static constexpr int lonorig_ = -Math::hd; // Origin for longitude
-    static constexpr int latorig_ = -Math::qd; // Origin for latitude
+    static constexpr int lonorig_ = -180;      // Origin for longitude
+    static constexpr int latorig_ = -90;       // Origin for latitude
     static constexpr int baselon_ = 10;        // Base for longitude tiles
     static constexpr int baselat_ = 24;        // Base for latitude tiles
     static constexpr int lonlen_ = 3;
@@ -102,7 +101,7 @@ namespace GeographicLib {
      *
      * Internally, \e prec is first put in the range [0, 2].
      **********************************************************************/
-    static Math::real Resolution(int prec) {
+    static real Resolution(int prec) {
       return 1/real(prec <= 0 ? mult1_ : (prec == 1 ? mult1_ * mult2_ :
                                           mult1_ * mult2_ * mult3_));
     }

@@ -108,7 +108,7 @@ namespace GeographicLib {
      *
      * This is equivalent to specifying an empty set of points.
      **********************************************************************/
-    NearestNeighbor() : _numpoints(0), _bucket(0), _cost(0) {}
+    NearestNeighbor() : numpoints_(0), bucket_(0), cost_(0) {}
 
     /**
      * Constructor for NearestNeighbor.
@@ -177,12 +177,12 @@ namespace GeographicLib {
       std::vector<Node> tree;
       init(pts, dist, bucket, tree, ids, cost,
            0, int(ids.size()), int(ids.size()/2));
-      _tree.swap(tree);
-      _numpoints = int(pts.size());
-      _bucket = bucket;
-      _mc = _sc = 0;
-      _cost = cost; _c1 = _k = _cmax = 0;
-      _cmin = std::numeric_limits<int>::max();
+      tree_.swap(tree);
+      numpoints_ = int(pts.size());
+      bucket_ = bucket;
+      mc_ = sc_ = 0;
+      cost_ = cost; c1_ = k_ = cmax_ = 0;
+      cmin_ = std::numeric_limits<int>::max();
     }
 
     /**
@@ -256,17 +256,17 @@ namespace GeographicLib {
                   dist_t mindist = -1,
                   bool exhaustive = true,
                   dist_t tol = 0) const {
-      if (_numpoints != int(pts.size()))
+      if (numpoints_ != int(pts.size()))
           throw GeographicLib::GeographicErr("pts array has wrong size");
       std::priority_queue<item> results;
-      if (_numpoints > 0 && k > 0 && maxdist > mindist) {
+      if (numpoints_ > 0 && k > 0 && maxdist > mindist) {
         // distance to the kth closest point so far
         dist_t tau = maxdist;
         // first is negative of how far query is outside boundary of node
         // +1 if on boundary or inside
         // second is node index
         std::priority_queue<item> todo;
-        todo.push(std::make_pair(dist_t(1), int(_tree.size()) - 1));
+        todo.push(std::make_pair(dist_t(1), int(tree_.size()) - 1));
         int c = 0;
         while (!todo.empty()) {
           int n = todo.top().second;
@@ -275,10 +275,10 @@ namespace GeographicLib {
           dist_t tau1 = tau - tol;
           // compare tau and d again since tau may have become smaller.
           if (!( n >= 0 && tau1 >= d )) continue;
-          const Node& current = _tree[n];
+          const Node& current = tree_[n];
           dist_t dst = 0;   // to suppress warning about uninitialized variable
           bool exitflag = false, leaf = current.index < 0;
-          for (int i = 0; i < (leaf ? _bucket : 1); ++i) {
+          for (int i = 0; i < (leaf ? bucket_ : 1); ++i) {
             int index = leaf ? current.leaves[i] : current.index;
             if (index < 0) break;
             dst = dist(pts[index], query);
@@ -321,13 +321,13 @@ namespace GeographicLib {
             }
           }
         }
-        ++_k;
-        _c1 += c;
-        double omc = _mc;
-        _mc += (c - omc) / _k;
-        _sc += (c - omc) * (c - _mc);
-        if (c > _cmax) _cmax = c;
-        if (c < _cmin) _cmin = c;
+        ++k_;
+        c1_ += c;
+        double omc = mc_;
+        mc_ += (c - omc) / k_;
+        sc_ += (c - omc) * (c - mc_);
+        if (c > cmax_) cmax_ = c;
+        if (c < cmin_) cmin_ = c;
       }
 
       dist_t d = -1;
@@ -345,7 +345,7 @@ namespace GeographicLib {
     /**
      * @return the total number of points in the set.
      **********************************************************************/
-    int NumPoints() const { return _numpoints; }
+    int NumPoints() const { return numpoints_; }
 
     /**
      * Write the object to an I/O stream.
@@ -373,13 +373,13 @@ namespace GeographicLib {
         int buf[6];
         buf[0] = version;
         buf[1] = realspec;
-        buf[2] = _bucket;
-        buf[3] = _numpoints;
-        buf[4] = int(_tree.size());
-        buf[5] = _cost;
+        buf[2] = bucket_;
+        buf[3] = numpoints_;
+        buf[4] = int(tree_.size());
+        buf[5] = cost_;
         os.write(reinterpret_cast<const char *>(buf), 6 * sizeof(int));
-        for (int i = 0; i < int(_tree.size()); ++i) {
-          const Node& node = _tree[i];
+        for (int i = 0; i < int(tree_.size()); ++i) {
+          const Node& node = tree_[i];
           os.write(reinterpret_cast<const char *>(&node.index), sizeof(int));
           if (node.index >= 0) {
             os.write(reinterpret_cast<const char *>(node.data.lower),
@@ -390,7 +390,7 @@ namespace GeographicLib {
                      2 * sizeof(int));
           } else {
             os.write(reinterpret_cast<const char *>(node.leaves),
-                     _bucket * sizeof(int));
+                     bucket_ * sizeof(int));
           }
         }
       } else {
@@ -403,17 +403,17 @@ namespace GeographicLib {
                             std::log10(2.0) + 1));
           ostring.precision(prec);
         }
-        ostring << version << " " << realspec << " " << _bucket << " "
-                << _numpoints << " " << _tree.size() << " " << _cost;
-        for (int i = 0; i < int(_tree.size()); ++i) {
-          const Node& node = _tree[i];
+        ostring << version << " " << realspec << " " << bucket_ << " "
+                << numpoints_ << " " << tree_.size() << " " << cost_;
+        for (int i = 0; i < int(tree_.size()); ++i) {
+          const Node& node = tree_[i];
           ostring << "\n" << node.index;
           if (node.index >= 0) {
             for (int l = 0; l < 2; ++l)
               ostring << " " << node.data.lower[l] << " " << node.data.upper[l]
                       << " " << node.data.child[l];
           } else {
-            for (int l = 0; l < _bucket; ++l)
+            for (int l = 0; l < bucket_; ++l)
               ostring << " " << node.leaves[l];
           }
         }
@@ -515,12 +515,12 @@ namespace GeographicLib {
         node.Check(numpoints, treesize, bucket);
         tree.push_back(node);
       }
-      _tree.swap(tree);
-      _numpoints = numpoints;
-      _bucket = bucket;
-      _mc = _sc = 0;
-      _cost = cost; _c1 = _k = _cmax = 0;
-      _cmin = std::numeric_limits<int>::max();
+      tree_.swap(tree);
+      numpoints_ = numpoints;
+      bucket_ = bucket;
+      mc_ = sc_ = 0;
+      cost_ = cost; c1_ = k_ = cmax_ = 0;
+      cmin_ = std::numeric_limits<int>::max();
     }
 
     /**
@@ -551,16 +551,16 @@ namespace GeographicLib {
      * @param[in,out] t the NearestNeighbor object to swap with.
      **********************************************************************/
     void swap(NearestNeighbor& t) {
-      std::swap(_numpoints, t._numpoints);
-      std::swap(_bucket, t._bucket);
-      std::swap(_cost, t._cost);
-      _tree.swap(t._tree);
-      std::swap(_mc, t._mc);
-      std::swap(_sc, t._sc);
-      std::swap(_c1, t._c1);
-      std::swap(_k, t._k);
-      std::swap(_cmin, t._cmin);
-      std::swap(_cmax, t._cmax);
+      std::swap(numpoints_, t.numpoints_);
+      std::swap(bucket_, t.bucket_);
+      std::swap(cost_, t.cost_);
+      tree_.swap(t.tree_);
+      std::swap(mc_, t.mc_);
+      std::swap(sc_, t.sc_);
+      std::swap(c1_, t.c1_);
+      std::swap(k_, t.k_);
+      std::swap(cmin_, t.cmin_);
+      std::swap(cmax_, t.cmax_);
     }
 
     /**
@@ -580,9 +580,9 @@ namespace GeographicLib {
     void Statistics(int& setupcost, int& numsearches, int& searchcost,
                     int& mincost, int& maxcost,
                     double& mean, double& sd) const {
-      setupcost = _cost; numsearches = _k; searchcost = _c1;
-      mincost = _cmin; maxcost = _cmax;
-      mean = _mc; sd = std::sqrt(_sc / (_k - 1));
+      setupcost = cost_; numsearches = k_; searchcost = c1_;
+      mincost = cmin_; maxcost = cmax_;
+      mean = mc_; sd = std::sqrt(sc_ / (k_ - 1));
     }
 
     /**
@@ -590,9 +590,9 @@ namespace GeographicLib {
      * far.
      **********************************************************************/
     void ResetStatistics() const {
-      _mc = _sc = 0;
-      _c1 = _k = _cmax = 0;
-      _cmin = std::numeric_limits<int>::max();
+      mc_ = sc_ = 0;
+      c1_ = k_ = cmax_ = 0;
+      cmin_ = std::numeric_limits<int>::max();
     }
 
   private:
@@ -691,10 +691,10 @@ namespace GeographicLib {
       int version1 = version;
       ar & boost::serialization::make_nvp("version", version1)
         & boost::serialization::make_nvp("realspec", realspec)
-        & boost::serialization::make_nvp("bucket", _bucket)
-        & boost::serialization::make_nvp("numpoints", _numpoints)
-        & boost::serialization::make_nvp("cost", _cost)
-        & boost::serialization::make_nvp("tree", _tree);
+        & boost::serialization::make_nvp("bucket", bucket_)
+        & boost::serialization::make_nvp("numpoints", numpoints_)
+        & boost::serialization::make_nvp("cost", cost_)
+        & boost::serialization::make_nvp("tree", tree_);
     }
     template<class Archive> void load(Archive& ar, const unsigned) {
       int version1, realspec, bucket, numpoints, cost;
@@ -717,23 +717,23 @@ namespace GeographicLib {
           GeographicLib::GeographicErr("Bad number of points or tree size");
       for (int i = 0; i < int(tree.size()); ++i)
         tree[i].Check(numpoints, int(tree.size()), bucket);
-      _tree.swap(tree);
-      _numpoints = numpoints;
-      _bucket = bucket;
-      _mc = _sc = 0;
-      _cost = cost; _c1 = _k = _cmax = 0;
-      _cmin = std::numeric_limits<int>::max();
+      tree_.swap(tree);
+      numpoints_ = numpoints;
+      bucket_ = bucket;
+      mc_ = sc_ = 0;
+      cost_ = cost; c1_ = k_ = cmax_ = 0;
+      cmin_ = std::numeric_limits<int>::max();
     }
     template<class Archive>
     void serialize(Archive& ar, const unsigned int file_version)
     { boost::serialization::split_member(ar, *this, file_version); }
 #endif
 
-    int _numpoints, _bucket, _cost;
-    std::vector<Node> _tree;
-    // Counters to track stastistics on the cost of searches
-    mutable double _mc, _sc;
-    mutable int _c1, _k, _cmin, _cmax;
+    int numpoints_, bucket_, cost_;
+    std::vector<Node> tree_;
+    // Counters to track statistics on the cost of searches
+    mutable double mc_, sc_;
+    mutable int c1_, k_, cmin_, cmax_;
 
     int init(const std::vector<pos_t>& pts, const distfun_t& dist, int bucket,
              std::vector<Node>& tree, std::vector<item>& ids, int& cost,
@@ -801,10 +801,6 @@ namespace GeographicLib {
 
   };
 
-} // namespace GeographicLib
-
-namespace std {
-
   /**
    * Swap two GeographicLib::NearestNeighbor objects.
    *
@@ -816,11 +812,12 @@ namespace std {
    * @param[in,out] b the second GeographicLib::NearestNeighbor to swap.
    **********************************************************************/
   template<typename dist_t, typename pos_t, class distfun_t>
-  void swap(GeographicLib::NearestNeighbor<dist_t, pos_t, distfun_t>& a,
+  void swap (GeographicLib::NearestNeighbor<dist_t, pos_t, distfun_t>& a,
             GeographicLib::NearestNeighbor<dist_t, pos_t, distfun_t>& b) {
-    a.swap(b);
+    a.swap (b);
   }
 
-} // namespace std
+} // namespace GeographicLib
+
 
 #endif  // GEOGRAPHICLIB_NEARESTNEIGHBOR_HPP

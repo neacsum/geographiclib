@@ -1,6 +1,6 @@
 /**
  * \file Georef.hpp
- * \brief Header for GeographicLib::Georef class
+ * \brief Header for GeographicLib::Georef namespace
  *
  * Copyright (c) Charles Karney (2015-2024) <karney@alum.mit.edu> and licensed
  * under the MIT/X11 License.  For more information, see
@@ -29,23 +29,9 @@ namespace GeographicLib {
    * \include examples/Georef.cpp
    **********************************************************************/
 
-  class GEOGRAPHICLIB_EXPORT Georef {
-  private:
-    typedef Math::real real;
-    static const char* const digits_;
-    static const char* const lontile_;
-    static const char* const lattile_;
-    static const char* const degrees_;
-    static constexpr int tile_ = 15;           // The size of tile in degrees
-    static constexpr int lonorig_ = -Math::hd; // Origin for longitude
-    static constexpr int latorig_ = -Math::qd; // Origin for latitude
-    static constexpr int base_ = 10;           // Base for minutes
-    static constexpr int baselen_ = 4;
-    static constexpr int maxprec_ = 11;        // approximately equivalent to MGRS class
-    static constexpr int maxlen_ = baselen_ + 2 * maxprec_;
-    Georef() = delete;          // Disable constructor
-
-  public:
+  namespace Georef {
+    constexpr int maxprec_ = 11;        // approximately equivalent to MGRS class
+    constexpr int base_ = 10;           // Base for minutes
 
     /**
      * Convert from geographic coordinates to georef.
@@ -71,7 +57,7 @@ namespace GeographicLib {
      *
      * If \e lat or \e lon is NaN, then \e georef is set to "INVALID".
      **********************************************************************/
-    static void Forward(real lat, real lon, int prec, std::string& georef);
+    void Forward(real lat, real lon, int prec, std::string& georef);
 
     /**
      * Convert from Georef to geographic coordinates.
@@ -99,7 +85,7 @@ namespace GeographicLib {
      * If the first 3 characters of \e georef are "INV", then \e lat and \e lon
      * are set to NaN and \e prec is unchanged.
      **********************************************************************/
-    static void Reverse(const std::string& georef, real& lat, real& lon,
+    void Reverse(const std::string& georef, real& lat, real& lon,
                         int& prec, bool centerp = true);
 
     /**
@@ -110,15 +96,14 @@ namespace GeographicLib {
      *
      * Internally, \e prec is first put in the range [&minus;1, 11].
      **********************************************************************/
-    static Math::real Resolution(int prec) {
+    inline real Resolution(int prec) {
       if (prec < 1)
         return real(prec < 0 ? 15 : 1);
       else {
-        using std::pow;
         // Treat prec = 1 as 2.
-        prec = (std::max)(2, (std::min)(int(maxprec_), prec));
+        prec = std::max(2, std::min(maxprec_, prec));
         // Need extra real because, since C++11, pow(float, int) returns double
-        return 1/(60 * real(pow(real(base_), prec - 2)));
+        return 1/(60 * real(std::pow(real(base_), prec - 2)));
       }
     }
 
@@ -131,7 +116,7 @@ namespace GeographicLib {
      *
      * The returned length is in the range [0, 11].
      **********************************************************************/
-    static int Precision(real res) {
+    inline int Precision(real res) {
       using std::fabs; res = fabs(res);
       for (int prec = 0; prec < maxprec_; ++prec) {
         if (prec == 1)
@@ -142,7 +127,7 @@ namespace GeographicLib {
       return maxprec_;
     }
 
-  };
+  } //namespace Georef
 
 } // namespace GeographicLib
 

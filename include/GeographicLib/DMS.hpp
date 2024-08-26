@@ -83,7 +83,6 @@ namespace GeographicLib {
     };
 
   private:
-    typedef Math::real real;
     // Replace all occurrences of pat by c.  If c is NULL remove pat.
     static void replace(std::string& s, const std::string& pat, char c);
     static const char* const hemispheres_;
@@ -91,8 +90,8 @@ namespace GeographicLib {
     static const char* const digits_;
     static const char* const dmsindicators_;
     static const char* const components_[3];
-    static Math::real NumMatch(const std::string& s);
-    static Math::real InternalDecode(const std::string& dmsa, flag& ind);
+    static real NumMatch(const std::string& s);
+    static real InternalDecode(const std::string& dmsa, flag& ind);
     DMS() = delete;             // Disable constructor
 
   public:
@@ -227,7 +226,7 @@ namespace GeographicLib {
      * The codes with a leading zero byte, e.g., U+00b0, are accepted in their
      * UTF-8 coded form 0xc2 0xb0 and as a single byte 0xb0.
      **********************************************************************/
-    static Math::real Decode(const std::string& dms, flag& ind);
+    static real Decode(const std::string& dms, flag& ind);
 
     /**
      * Convert DMS to an angle.
@@ -241,8 +240,8 @@ namespace GeographicLib {
      * so -3d20' would need to be represented as - DMS::Decode(3.0, 20.0) or
      * DMS::Decode(-3.0, -20.0).
      **********************************************************************/
-    static Math::real Decode(real d, real m = 0, real s = 0)
-    { return d + (m + s / real(Math::ms)) / real(Math::dm); }
+    static real Decode(real d, real m = 0, real s = 0)
+    { return d + (m + s / real(60)) / real(60); }
 
     /**
      * Convert a pair of strings to latitude and longitude.
@@ -282,7 +281,7 @@ namespace GeographicLib {
      * No hemisphere designator is allowed and no check is done on the range of
      * the result.
      **********************************************************************/
-    static Math::real DecodeAngle(const std::string& angstr);
+    static real DecodeAngle(const std::string& angstr);
 
     /**
      * Convert a string to an azimuth in degrees.
@@ -296,7 +295,7 @@ namespace GeographicLib {
      * A hemisphere designator E/W can be used; the result is multiplied by
      * &minus;1 if W is present.
      **********************************************************************/
-    static Math::real DecodeAzimuth(const std::string& azistr);
+    static real DecodeAzimuth(const std::string& azistr);
 
     /**
      * Convert angle (in degrees) into a DMS string (using d, ', and &quot;).
@@ -364,7 +363,7 @@ namespace GeographicLib {
      * @param[out] m arc minutes.
      **********************************************************************/
     static void Encode(real ang, real& d, real& m) {
-      d = int(ang); m = real(Math::dm) * (ang - d);
+      d = int(ang); m = real(60) * (ang - d);
     }
 
     /**
@@ -376,8 +375,8 @@ namespace GeographicLib {
      * @param[out] s arc seconds.
      **********************************************************************/
     static void Encode(real ang, real& d, real& m, real& s) {
-      d = int(ang); ang = real(Math::dm) * (ang - d);
-      m = int(ang); s = real(Math::ms) * (ang - m);
+      d = int(ang); ang = real(60) * (ang - d);
+      m = int(ang); s = real(60) * (ang - m);
     }
 
   };

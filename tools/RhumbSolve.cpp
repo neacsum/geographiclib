@@ -27,7 +27,6 @@
 int usage (int retval, bool brief);
 
 using namespace GeographicLib;
-typedef Math::real real;
 
 std::string LatLonString(real lat, real lon, int prec, bool dms, char dmssep,
                          bool longfirst) {
@@ -176,7 +175,7 @@ int main(int argc, const char* const argv[]) {
 
     const Rhumb rh(a, f, exact);
     const RhumbLine rhl(linecalc ? rh.Line(lat1, lon1, azi12) :
-                        rh.Line(0, 0, Math::qd));
+                        rh.Line(0, 0, 90));
     // Max precision = 10: 0.1 nm in distance, 10^-15 deg (= 0.11 nm),
     // 10^-11 sec (= 0.3 nm).
     prec = std::min(10 + Math::extra_digits(), std::max(0, prec));

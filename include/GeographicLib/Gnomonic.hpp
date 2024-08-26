@@ -101,10 +101,9 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Gnomonic {
   private:
-    typedef Math::real real;
     real eps0_, eps_;
-    Geodesic _earth;
-    real _a, _f;
+    Geodesic earth_;
+    real a_, f_;
     // numit_ increased from 10 to 20 to fix convergence failure with high
     // precision (e.g., GEOGRAPHICLIB_DIGITS=2000) calculations.  Reverse uses
     // Newton's method which converges quadratically and so numit_ = 10 would
@@ -199,13 +198,13 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value inherited from the Geodesic object used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Geodesic object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
     ///@}
 
   };

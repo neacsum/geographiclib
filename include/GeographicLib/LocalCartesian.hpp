@@ -37,12 +37,11 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT LocalCartesian {
   private:
-    typedef Math::real real;
     static const size_t dim_ = 3;
     static const size_t dim2_ = dim_ * dim_;
-    Geocentric _earth;
-    real _lat0, _lon0, _h0;
-    real _x0, _y0, _z0, _r[dim2_];
+    Geocentric earth_;
+    real lat0_, lon0_, h0_;
+    real x0_, y0_, z0_, r_[dim2_];
     void IntForward(real lat, real lon, real h, real& x, real& y, real& z,
                     real M[dim2_]) const;
     void IntReverse(real x, real y, real z, real& lat, real& lon, real& h,
@@ -63,7 +62,7 @@ namespace GeographicLib {
      **********************************************************************/
     LocalCartesian(real lat0, real lon0, real h0 = 0,
                    const Geocentric& earth = Geocentric::WGS84())
-      : _earth(earth)
+      : earth_(earth)
     { Reset(lat0, lon0, h0); }
 
     /**
@@ -75,7 +74,7 @@ namespace GeographicLib {
      * Sets \e lat0 = 0, \e lon0 = 0, \e h0 = 0.
      **********************************************************************/
     explicit LocalCartesian(const Geocentric& earth = Geocentric::WGS84())
-      : _earth(earth)
+      : earth_(earth)
     { Reset(real(0), real(0), real(0)); }
 
     /**
@@ -205,30 +204,30 @@ namespace GeographicLib {
     /**
      * @return latitude of the origin (degrees).
      **********************************************************************/
-    Math::real LatitudeOrigin() const { return _lat0; }
+    real LatitudeOrigin() const { return lat0_; }
 
     /**
      * @return longitude of the origin (degrees).
      **********************************************************************/
-    Math::real LongitudeOrigin() const { return _lon0; }
+    real LongitudeOrigin() const { return lon0_; }
 
     /**
      * @return height of the origin (meters).
      **********************************************************************/
-    Math::real HeightOrigin() const { return _h0; }
+    real HeightOrigin() const { return h0_; }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value of \e a inherited from the Geocentric object used in the
      *   constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Geocentric object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
     ///@}
 
   };

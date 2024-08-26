@@ -78,14 +78,13 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Rhumb {
   private:
-    typedef Math::real real;
     friend class RhumbLine;
     template<class T> friend class PolygonAreaT;
-    DAuxLatitude _aux;
-    bool _exact;
-    real _a, _f, _n, _rm, _c2;
-    int _lL;             // N.B. names of the form _[A-Z].* are reserved in C++
-    std::vector<real> _pP;      // The Fourier coefficients P_l
+    DAuxLatitude aux_;
+    bool exact_;
+    real a_, f_, n_, rm_, c2_;
+    int lL_;             // N.B. names of the form _[A-Z].* are reserved in C++
+    std::vector<real> pP_;      // The Fourier coefficients P_l
     static const int Lmax_ = GEOGRAPHICLIB_RHUMBAREA_ORDER;
     void AreaCoeffs();
     class qIntegrand {
@@ -333,13 +332,13 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the  flattening of the ellipsoid.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return total area of ellipsoid in meters<sup>2</sup>.  The area of a
@@ -347,9 +346,9 @@ namespace GeographicLib {
      *   Geodesic::EllipsoidArea()/2 to the sum of \e S12 for each side of the
      *   polygon.
      **********************************************************************/
-    Math::real EllipsoidArea() const {
-      // _c2 contains a Math::degrees() factor, so 4*pi -> 2*Math::td.
-      return 2 * real(Math::td) * _c2;
+    real EllipsoidArea() const {
+      // c2_ contains a Math::degrees() factor, so 4*pi -> 2*Math::td.
+      return 2 * real(360) * c2_;
     }
     ///@}
 
@@ -380,7 +379,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT RhumbLine {
   private:
-    typedef Math::real real;
     friend class Rhumb;
     const Rhumb& _rh;
     real _lat1, _lon1, _azi12, _salp, _calp, _mu1, _psi1;
@@ -514,29 +512,29 @@ namespace GeographicLib {
     /**
      * @return \e lat1 the latitude of point 1 (degrees).
      **********************************************************************/
-    Math::real Latitude() const { return _lat1; }
+    real Latitude() const { return _lat1; }
 
     /**
      * @return \e lon1 the longitude of point 1 (degrees).
      **********************************************************************/
-    Math::real Longitude() const { return _lon1; }
+    real Longitude() const { return _lon1; }
 
     /**
      * @return \e azi12 the azimuth of the rhumb line (degrees).
      **********************************************************************/
-    Math::real Azimuth() const { return  _azi12; }
+    real Azimuth() const { return  _azi12; }
 
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value inherited from the Rhumb object used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _rh.EquatorialRadius(); }
+    real EquatorialRadius() const { return _rh.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Rhumb object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _rh.Flattening(); }
+    real Flattening() const { return _rh.Flattening(); }
   };
 
 } // namespace GeographicLib

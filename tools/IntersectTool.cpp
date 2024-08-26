@@ -22,7 +22,6 @@
 int usage (int retval, bool brief);
 
 using namespace GeographicLib;
-typedef Math::real real;
 
 int main(int argc, const char* const argv[]) {
   try {

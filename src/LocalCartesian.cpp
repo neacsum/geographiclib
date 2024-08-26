@@ -14,14 +14,14 @@ namespace GeographicLib {
   using namespace std;
 
   void LocalCartesian::Reset(real lat0, real lon0, real h0) {
-    _lat0 = Math::LatFix(lat0);
-    _lon0 = Math::AngNormalize(lon0);
-    _h0 = h0;
-    _earth.Forward(_lat0, _lon0, _h0, _x0, _y0, _z0);
+    lat0_ = Math::LatFix(lat0);
+    lon0_ = Math::AngNormalize(lon0);
+    h0_ = h0;
+    earth_.Forward(lat0_, lon0_, h0_, x0_, y0_, z0_);
     real sphi, cphi, slam, clam;
-    Math::sincosd(_lat0, sphi, cphi);
-    Math::sincosd(_lon0, slam, clam);
-    Geocentric::Rotation(sphi, cphi, slam, clam, _r);
+    Math::sincosd(lat0_, sphi, cphi);
+    Math::sincosd(lon0_, slam, clam);
+    Geocentric::Rotation(sphi, cphi, slam, clam, r_);
   }
 
   void LocalCartesian::MatrixMultiply(real M[dim2_]) const {
@@ -30,7 +30,7 @@ namespace GeographicLib {
     copy(M, M + dim2_, t);
     for (size_t i = 0; i < dim2_; ++i) {
       size_t row = i / dim_, col = i % dim_;
-      M[i] = _r[row] * t[col] + _r[row+3] * t[col+3] + _r[row+6] * t[col+6];
+      M[i] = r_[row] * t[col] + r_[row+3] * t[col+3] + r_[row+6] * t[col+6];
     }
   }
 
@@ -38,11 +38,11 @@ namespace GeographicLib {
                                   real& x, real& y, real& z,
                                   real M[dim2_]) const {
     real xc, yc, zc;
-    _earth.IntForward(lat, lon, h, xc, yc, zc, M);
-    xc -= _x0; yc -= _y0; zc -= _z0;
-    x = _r[0] * xc + _r[3] * yc + _r[6] * zc;
-    y = _r[1] * xc + _r[4] * yc + _r[7] * zc;
-    z = _r[2] * xc + _r[5] * yc + _r[8] * zc;
+    earth_.IntForward(lat, lon, h, xc, yc, zc, M);
+    xc -= x0_; yc -= y0_; zc -= z0_;
+    x = r_[0] * xc + r_[3] * yc + r_[6] * zc;
+    y = r_[1] * xc + r_[4] * yc + r_[7] * zc;
+    z = r_[2] * xc + r_[5] * yc + r_[8] * zc;
     if (M)
       MatrixMultiply(M);
   }
@@ -51,10 +51,10 @@ namespace GeographicLib {
                                   real& lat, real& lon, real& h,
                                   real M[dim2_]) const {
     real
-      xc = _x0 + _r[0] * x + _r[1] * y + _r[2] * z,
-      yc = _y0 + _r[3] * x + _r[4] * y + _r[5] * z,
-      zc = _z0 + _r[6] * x + _r[7] * y + _r[8] * z;
-    _earth.IntReverse(xc, yc, zc, lat, lon, h, M);
+      xc = x0_ + r_[0] * x + r_[1] * y + r_[2] * z,
+      yc = y0_ + r_[3] * x + r_[4] * y + r_[5] * z,
+      zc = z0_ + r_[6] * x + r_[7] * y + r_[8] * z;
+    earth_.IntReverse(xc, yc, zc, lat, lon, h, M);
     if (M)
       MatrixMultiply(M);
   }

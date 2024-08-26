@@ -14,17 +14,17 @@ namespace GeographicLib {
   using namespace std;
 
   Geocentric::Geocentric(real a, real f)
-    : _a(a)
-    , _f(f)
-    , _e2(_f * (2 - _f))
-    , _e2m(Math::sq(1 - _f))    // 1 - _e2
-    , _e2a(fabs(_e2))
-    , _e4a(Math::sq(_e2))
-    , _maxrad(2 * _a / numeric_limits<real>::epsilon())
+    : a_(a)
+    , f_(f)
+    , e2_(f_ * (2 - f_))
+    , e2m_(Math::sq(1 - f_))    // 1 - e2_
+    , e2a_(fabs(e2_))
+    , e4a_(Math::sq(e2_))
+    , maxrad_(2 * a_ / numeric_limits<real>::epsilon())
   {
-    if (!(isfinite(_a) && _a > 0))
+    if (!(isfinite(a_) && a_ > 0))
       throw GeographicErr("Equatorial radius is not positive");
-    if (!(isfinite(_f) && _f < 1))
+    if (!(isfinite(f_) && f_ < 1))
       throw GeographicErr("Polar semi-axis is not positive");
   }
 
@@ -39,8 +39,8 @@ namespace GeographicLib {
     real sphi, cphi, slam, clam;
     Math::sincosd(Math::LatFix(lat), sphi, cphi);
     Math::sincosd(lon, slam, clam);
-    real n = _a/sqrt(1 - _e2 * Math::sq(sphi));
-    Z = (_e2m * n + h) * sphi;
+    real n = a_/sqrt(1 - e2_ * Math::sq(sphi));
+    Z = (e2m_ * n + h) * sphi;
     X = (n + h) * cphi;
     Y = X * slam;
     X *= clam;
@@ -57,7 +57,7 @@ namespace GeographicLib {
       clam = R != 0 ? X / R : 1;
     h = hypot(R, Z);      // Distance to center of earth
     real sphi, cphi;
-    if (h > _maxrad) {
+    if (h > maxrad_) {
       // We really far away (> 12 million light years); treat the earth as a
       // point and h, above, is an acceptable approximation to the height.
       // This avoids overflow, e.g., in the computation of disc below.  It's
@@ -70,27 +70,27 @@ namespace GeographicLib {
       real H = hypot(Z/2, R);
       sphi = (Z/2) / H;
       cphi = R / H;
-    } else if (_e4a == 0) {
+    } else if (e4a_ == 0) {
       // Treat the spherical case.  Dealing with underflow in the general case
-      // with _e2 = 0 is difficult.  Origin maps to N pole same as with
+      // with e2_ = 0 is difficult.  Origin maps to N pole same as with
       // ellipsoid.
       real H = hypot(h == 0 ? 1 : Z, R);
       sphi = (h == 0 ? 1 : Z) / H;
       cphi = R / H;
-      h -= _a;
+      h -= a_;
     } else {
       // Treat prolate spheroids by swapping R and Z here and by switching
       // the arguments to phi = atan2(...) at the end.
       real
-        p = Math::sq(R / _a),
-        q = _e2m * Math::sq(Z / _a),
-        r = (p + q - _e4a) / 6;
-      if (_f < 0) swap(p, q);
-      if ( !(_e4a * q == 0 && r <= 0) ) {
+        p = Math::sq(R / a_),
+        q = e2m_ * Math::sq(Z / a_),
+        r = (p + q - e4a_) / 6;
+      if (f_ < 0) swap(p, q);
+      if ( !(e4a_ * q == 0 && r <= 0) ) {
         real
           // Avoid possible division by zero when r = 0 by multiplying
           // equations for s and t by r^3 and r, resp.
-          S = _e4a * p * q / 4, // S = r^3 * s
+          S = e4a_ * p * q / 4, // S = r^3 * s
           r2 = Math::sq(r),
           r3 = r * r2,
           disc = S * (2 * r3 + S);
@@ -113,22 +113,22 @@ namespace GeographicLib {
           u += 2 * r * cos(ang / 3);
         }
         real
-          v = sqrt(Math::sq(u) + _e4a * q), // guaranteed positive
+          v = sqrt(Math::sq(u) + e4a_ * q), // guaranteed positive
           // Avoid loss of accuracy when u < 0.  Underflow doesn't occur in
           // e4 * q / (v - u) because u ~ e^4 when q is small and u < 0.
-          uv = u < 0 ? _e4a * q / (v - u) : u + v, // u+v, guaranteed positive
+          uv = u < 0 ? e4a_ * q / (v - u) : u + v, // u+v, guaranteed positive
           // Need to guard against w going negative due to roundoff in uv - q.
-          w = fmax(real(0), _e2a * (uv - q) / (2 * v)),
+          w = fmax(real(0), e2a_ * (uv - q) / (2 * v)),
           // Rearrange expression for k to avoid loss of accuracy due to
           // subtraction.  Division by 0 not possible because uv > 0, w >= 0.
           k = uv / (sqrt(uv + Math::sq(w)) + w),
-          k1 = _f >= 0 ? k : k - _e2,
-          k2 = _f >= 0 ? k + _e2 : k,
+          k1 = f_ >= 0 ? k : k - e2_,
+          k2 = f_ >= 0 ? k + e2_ : k,
           d = k1 * R / k2,
           H = hypot(Z/k1, R/k2);
         sphi = (Z/k1) / H;
         cphi = (R/k2) / H;
-        h = (1 - _e2m/k1) * hypot(d, Z);
+        h = (1 - e2m_/k1) * hypot(d, Z);
       } else {                  // e4 * q == 0 && r <= 0
         // This leads to k = 0 (oblate, equatorial plane) and k + e^2 = 0
         // (prolate, rotation axis) and the generation of 0/0 in the general
@@ -137,13 +137,13 @@ namespace GeographicLib {
         // f > 0: z -> 0, k      ->   e2 * sqrt(q)/sqrt(e4 - p)
         // f < 0: R -> 0, k + e2 -> - e2 * sqrt(q)/sqrt(e4 - p)
         real
-          zz = sqrt((_f >= 0 ? _e4a - p : p) / _e2m),
-          xx = sqrt( _f <  0 ? _e4a - p : p        ),
+          zz = sqrt((f_ >= 0 ? e4a_ - p : p) / e2m_),
+          xx = sqrt( f_ <  0 ? e4a_ - p : p        ),
           H = hypot(zz, xx);
         sphi = zz / H;
         cphi = xx / H;
         if (Z < 0) sphi = -sphi; // for tiny negative Z (not for prolate)
-        h = - _a * (_f >= 0 ? _e2m : 1) * H / _e2a;
+        h = - a_ * (f_ >= 0 ? e2m_ : 1) * H / e2a_;
       }
     }
     lat = Math::atan2d(sphi, cphi);

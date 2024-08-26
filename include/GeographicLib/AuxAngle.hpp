@@ -46,8 +46,7 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT AuxAngle {
   private:
-    typedef Math::real real;
-    real _y, _x;
+    real y_, x_;
   public:
     /**
      * The constructor.
@@ -62,55 +61,55 @@ namespace GeographicLib {
      * + no arguments gives an angle of 0;
      * + 1 argument specifies the tangent of the angle.
      **********************************************************************/
-    explicit AuxAngle(real y = 0, real x = 1) : _y(y), _x(x) {}
+    explicit AuxAngle(real y = 0, real x = 1) : y_(y), x_(x) {}
     /**
      * @return the \e y component.  This is the sine of the angle if the
      *   AuxAngle has been normalized.
      **********************************************************************/
-    Math::real y() const { return _y; }
+    real y() const { return y_; }
     /**
      * @return the \e x component.  This is the cosine of the angle if the
      *   AuxAngle has been normalized.
      **********************************************************************/
-    Math::real x() const { return _x; }
+    real x() const { return x_; }
     /**
      * @return a reference to the \e y component.  This allows this component
      *   to be altered.
      **********************************************************************/
-    Math::real& y() { return _y; }
+    real& y() { return y_; }
     /**
      * @return a reference to the \e x component.  This allows this component
      *   to be altered.
      **********************************************************************/
-    Math::real& x() { return _x; }
+    real& x() { return x_; }
     /**
      * @return the AuxAngle converted to the conventional angle measured in
      *   degrees.
      **********************************************************************/
-    Math::real degrees() const;
+    real degrees() const;
     /**
      * @return the AuxAngle converted to the conventional angle measured in
      *   radians.
      **********************************************************************/
-    Math::real radians() const;
+    real radians() const;
     /**
      * @return the lambertian of the AuxAngle.
      *
      * \note the lambertian of an angle &chi; is
      * lam(&chi;) = asinh(tan(&chi;)).
      **********************************************************************/
-    Math::real lam() const;
+    real lam() const;
     /**
      * @return the lambertian of the AuxAngle in degrees.
      *
      * \note the lambertian of an angle &chi; is
      * lam(&chi;) = asinh(tan(&chi;)).
      **********************************************************************/
-    Math::real lamd() const;
+    real lamd() const;
     /**
      * @return the tangent of the angle.
      **********************************************************************/
-    Math::real tan() const { return _y / _x; }
+    real tan() const { return y_ / x_; }
     /**
      * @return a new normalized AuxAngle with the point lying on the unit
      *   circle and the \e y and \e x components are equal to the sine and
@@ -142,7 +141,7 @@ namespace GeographicLib {
      **********************************************************************/
     AuxAngle& operator+=(const AuxAngle& p);
     /**
-     * Construct and return an AuxAngle specied as an angle in degrees.
+     * Construct and return an AuxAngle specified as an angle in degrees.
      *
      * @param[in] d the angle measured in degrees.
      * @return the corresponding AuxAngle.
@@ -221,19 +220,19 @@ namespace GeographicLib {
     return AuxAngle(sinh(psid * Math::degree()));
   }
 
-  inline Math::real AuxAngle::degrees() const {
-    return Math::atan2d(_y, _x);
+  inline real AuxAngle::degrees() const {
+    return Math::atan2d(y_, x_);
   }
 
-  inline Math::real AuxAngle::radians() const {
-    using std::atan2; return atan2(_y, _x);
+  inline real AuxAngle::radians() const {
+    using std::atan2; return atan2(y_, x_);
   }
 
-  inline Math::real AuxAngle::lam() const {
+  inline real AuxAngle::lam() const {
     using std::asinh; return asinh( tan() );
   }
 
-  inline Math::real AuxAngle::lamd() const {
+  inline real AuxAngle::lamd() const {
     using std::asinh; return asinh( tan() ) / Math::degree();
   }
 

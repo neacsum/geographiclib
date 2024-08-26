@@ -54,44 +54,44 @@ namespace GeographicLib {
     // [0, 360) -> 0; [-360, 0) or 360 -> 1
     // If mod function gives result in (-720, 720)
     // [0, 360) or [-inf, -360) -> 0; [-360, 0) or [360, inf) -> 1
-    lon1 = remainder(lon1, real(2 * Math::td));
-    lon2 = remainder(lon2, real(2 * Math::td));
-    return ( (lon2 >= 0 && lon2 < Math::td ? 0 : 1) -
-             (lon1 >= 0 && lon1 < Math::td ? 0 : 1) );
+    lon1 = remainder(lon1, real(2 * 360));
+    lon2 = remainder(lon2, real(2 * 360));
+    return ( (lon2 >= 0 && lon2 < 360 ? 0 : 1) -
+             (lon1 >= 0 && lon1 < 360 ? 0 : 1) );
   }
 
   template<class GeodType>
   void PolygonAreaT<GeodType>::AddPoint(real lat, real lon) {
-    if (_num == 0) {
-      _lat0 = _lat1 = lat;
-      _lon0 = _lon1 = lon;
+    if (num_ == 0) {
+      lat0_ = lat1_ = lat;
+      lon0_ = lon1_ = lon;
     } else {
       real s12, S12, t;
-      _earth.GenInverse(_lat1, _lon1, lat, lon, _mask,
+      earth_.GenInverse(lat1_, lon1_, lat, lon, mask_,
                         s12, t, t, t, t, t, S12);
-      _perimetersum += s12;
-      if (!_polyline) {
-        _areasum += S12;
-        _crossings += transit(_lon1, lon);
+      perimetersum_ += s12;
+      if (!polyline_) {
+        areasum_ += S12;
+        crossings_ += transit(lon1_, lon);
       }
-      _lat1 = lat; _lon1 = lon;
+      lat1_ = lat; lon1_ = lon;
     }
-    ++_num;
+    ++num_;
   }
 
   template<class GeodType>
   void PolygonAreaT<GeodType>::AddEdge(real azi, real s) {
-    if (_num) {                 // Do nothing if _num is zero
+    if (num_) {                 // Do nothing if num_ is zero
       real lat, lon, S12, t;
-      _earth.GenDirect(_lat1, _lon1, azi, false, s, _mask,
+      earth_.GenDirect(lat1_, lon1_, azi, false, s, mask_,
                        lat, lon, t, t, t, t, t, S12);
-      _perimetersum += s;
-      if (!_polyline) {
-        _areasum += S12;
-        _crossings += transitdirect(_lon1, lon);
+      perimetersum_ += s;
+      if (!polyline_) {
+        areasum_ += S12;
+        crossings_ += transitdirect(lon1_, lon);
       }
-      _lat1 = lat; _lon1 = lon;
-      ++_num;
+      lat1_ = lat; lon1_ = lon;
+      ++num_;
     }
   }
 
@@ -100,25 +100,25 @@ namespace GeographicLib {
                                            real& perimeter, real& area) const
   {
     real s12, S12, t;
-    if (_num < 2) {
+    if (num_ < 2) {
       perimeter = 0;
-      if (!_polyline)
+      if (!polyline_)
         area = 0;
-      return _num;
+      return num_;
     }
-    if (_polyline) {
-      perimeter = _perimetersum();
-      return _num;
+    if (polyline_) {
+      perimeter = perimetersum_();
+      return num_;
     }
-    _earth.GenInverse(_lat1, _lon1, _lat0, _lon0, _mask,
+    earth_.GenInverse(lat1_, lon1_, lat0_, lon0_, mask_,
                       s12, t, t, t, t, t, S12);
-    perimeter = _perimetersum(s12);
-    Accumulator<> tempsum(_areasum);
+    perimeter = perimetersum_(s12);
+    Accumulator<> tempsum(areasum_);
     tempsum += S12;
-    int crossings = _crossings + transit(_lon1, _lon0);
+    int crossings = crossings_ + transit(lon1_, lon0_);
     AreaReduce(tempsum, crossings, reverse, sign);
     area = real(0) + tempsum();
-    return _num;
+    return num_;
   }
 
   template<class GeodType>
@@ -126,30 +126,30 @@ namespace GeographicLib {
                                              bool reverse, bool sign,
                                              real& perimeter, real& area) const
   {
-    if (_num == 0) {
+    if (num_ == 0) {
       perimeter = 0;
-      if (!_polyline)
+      if (!polyline_)
         area = 0;
       return 1;
     }
-    perimeter = _perimetersum();
-    real tempsum = _polyline ? 0 : _areasum();
-    int crossings = _crossings;
-    unsigned num = _num + 1;
-    for (int i = 0; i < (_polyline ? 1 : 2); ++i) {
+    perimeter = perimetersum_();
+    real tempsum = polyline_ ? 0 : areasum_();
+    int crossings = crossings_;
+    unsigned num = num_ + 1;
+    for (int i = 0; i < (polyline_ ? 1 : 2); ++i) {
       real s12, S12, t;
-      _earth.GenInverse(i == 0 ? _lat1 : lat, i == 0 ? _lon1 : lon,
-                        i != 0 ? _lat0 : lat, i != 0 ? _lon0 : lon,
-                        _mask, s12, t, t, t, t, t, S12);
+      earth_.GenInverse(i == 0 ? lat1_ : lat, i == 0 ? lon1_ : lon,
+                        i != 0 ? lat0_ : lat, i != 0 ? lon0_ : lon,
+                        mask_, s12, t, t, t, t, t, S12);
       perimeter += s12;
-      if (!_polyline) {
+      if (!polyline_) {
         tempsum += S12;
-        crossings += transit(i == 0 ? _lon1 : lon,
-                             i != 0 ? _lon0 : lon);
+        crossings += transit(i == 0 ? lon1_ : lon,
+                             i != 0 ? lon0_ : lon);
       }
     }
 
-    if (_polyline)
+    if (polyline_)
       return num;
 
     AreaReduce(tempsum, crossings, reverse, sign);
@@ -162,30 +162,30 @@ namespace GeographicLib {
                                             bool reverse, bool sign,
                                             real& perimeter, real& area) const
   {
-    if (_num == 0) {            // we don't have a starting point!
+    if (num_ == 0) {            // we don't have a starting point!
       perimeter = Math::NaN();
-      if (!_polyline)
+      if (!polyline_)
         area = Math::NaN();
       return 0;
     }
-    unsigned num = _num + 1;
-    perimeter = _perimetersum() + s;
-    if (_polyline)
+    unsigned num = num_ + 1;
+    perimeter = perimetersum_() + s;
+    if (polyline_)
       return num;
 
-    real tempsum =  _areasum();
-    int crossings = _crossings;
+    real tempsum =  areasum_();
+    int crossings = crossings_;
     {
       real lat, lon, s12, S12, t;
-      _earth.GenDirect(_lat1, _lon1, azi, false, s, _mask,
+      earth_.GenDirect(lat1_, lon1_, azi, false, s, mask_,
                        lat, lon, t, t, t, t, t, S12);
       tempsum += S12;
-      crossings += transitdirect(_lon1, lon);
-      _earth.GenInverse(lat, lon, _lat0, _lon0, _mask,
+      crossings += transitdirect(lon1_, lon);
+      earth_.GenInverse(lat, lon, lat0_, lon0_, mask_,
                         s12, t, t, t, t, t, S12);
       perimeter += s12;
       tempsum += S12;
-      crossings += transit(lon, _lon0);
+      crossings += transit(lon, lon0_);
     }
 
     AreaReduce(tempsum, crossings, reverse, sign);
@@ -198,21 +198,21 @@ namespace GeographicLib {
   void PolygonAreaT<GeodType>::AreaReduce(T& area, int crossings,
                                           bool reverse, bool sign) const {
     Remainder(area);
-    if (crossings & 1) area += (area < 0 ? 1 : -1) * _area0/2;
+    if (crossings & 1) area += (area < 0 ? 1 : -1) * area0_/2;
     // area is with the clockwise sense.  If !reverse convert to
     // counter-clockwise convention.
     if (!reverse) area *= -1;
-    // If sign put area in (-_area0/2, _area0/2], else put area in [0, _area0)
+    // If sign put area in (-area0_/2, area0_/2], else put area in [0, area0_)
     if (sign) {
-      if (area > _area0/2)
-        area -= _area0;
-      else if (area <= -_area0/2)
-        area += _area0;
+      if (area > area0_/2)
+        area -= area0_;
+      else if (area <= -area0_/2)
+        area += area0_;
     } else {
-      if (area >= _area0)
-        area -= _area0;
+      if (area >= area0_)
+        area -= area0_;
       else if (area < 0)
-        area += _area0;
+        area += area0_;
     }
   }
 

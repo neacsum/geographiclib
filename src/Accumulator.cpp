@@ -14,7 +14,7 @@ namespace GeographicLib {
   /// \cond SKIP
 
   // Need to instantiate Accumulator to get the code into the shared library.
-  template class GEOGRAPHICLIB_EXPORT Accumulator<Math::real>;
+  template class GEOGRAPHICLIB_EXPORT Accumulator<real>;
 
   /// \endcond
 

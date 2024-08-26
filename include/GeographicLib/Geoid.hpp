@@ -81,7 +81,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Geoid {
   private:
-    typedef Math::real real;
 #if GEOGRAPHICLIB_GEOID_PGM_PIXEL_WIDTH != 4
     typedef unsigned short pixel_t;
     static const unsigned pixel_size_ = 2;
@@ -100,67 +99,67 @@ namespace GeographicLib {
     static const int c3n_[stencilsize_ * nterms_];
     static const int c3s_[stencilsize_ * nterms_];
 
-    std::string _name, _dir, _filename;
-    const bool _cubic;
-    const real _a, _e2, _degree, _eps;
-    mutable std::ifstream _file;
-    real _rlonres, _rlatres;
-    std::string _description, _datetime;
-    real _offset, _scale, _maxerror, _rmserror;
-    int _width, _height;
-    unsigned long long _datastart, _swidth;
-    bool _threadsafe;
+    std::string name_, dir_, filename_;
+    const bool cubic_;
+    const real a_, e2_, degree_, eps_;
+    mutable std::ifstream file_;
+    real rlonres_, rlatres_;
+    std::string description_, datetime_;
+    real offset_, scale_, maxerror_, rmserror_;
+    int width_, height_;
+    unsigned long long datastart_, swidth_;
+    bool threadsafe_;
     // Area cache
-    mutable std::vector< std::vector<pixel_t> > _data;
-    mutable bool _cache;
+    mutable std::vector< std::vector<pixel_t> > data_;
+    mutable bool cache_;
     // NE corner and extent of cache
-    mutable int _xoffset, _yoffset, _xsize, _ysize;
+    mutable int xoffset_, yoffset_, xsize_, ysize_;
     // Cell cache
-    mutable int _ix, _iy;
-    mutable real _v00, _v01, _v10, _v11;
-    mutable real _t[nterms_];
+    mutable int ix_, iy_;
+    mutable real v00_, v01_, v10_, v11_;
+    mutable real t_[nterms_];
     void filepos(int ix, int iy) const {
-      _file.seekg(std::streamoff
-                  (_datastart +
-                   pixel_size_ * (unsigned(iy)*_swidth + unsigned(ix))));
+      file_.seekg(std::streamoff
+                  (datastart_ +
+                   pixel_size_ * (unsigned(iy)*swidth_ + unsigned(ix))));
     }
     real rawval(int ix, int iy) const {
       if (ix < 0)
-        ix += _width;
-      else if (ix >= _width)
-        ix -= _width;
-      if (_cache && iy >= _yoffset && iy < _yoffset + _ysize &&
-          ((ix >= _xoffset && ix < _xoffset + _xsize) ||
-           (ix + _width >= _xoffset && ix + _width < _xoffset + _xsize))) {
-        return real(_data[iy - _yoffset]
-                    [ix >= _xoffset ? ix - _xoffset : ix + _width - _xoffset]);
+        ix += width_;
+      else if (ix >= width_)
+        ix -= width_;
+      if (cache_ && iy >= yoffset_ && iy < yoffset_ + ysize_ &&
+          ((ix >= xoffset_ && ix < xoffset_ + xsize_) ||
+           (ix + width_ >= xoffset_ && ix + width_ < xoffset_ + xsize_))) {
+        return real(data_[iy - yoffset_]
+                    [ix >= xoffset_ ? ix - xoffset_ : ix + width_ - xoffset_]);
       } else {
-        if (iy < 0 || iy >= _height) {
-          iy = iy < 0 ? -iy : 2 * (_height - 1) - iy;
-          ix += (ix < _width/2 ? 1 : -1) * _width/2;
+        if (iy < 0 || iy >= height_) {
+          iy = iy < 0 ? -iy : 2 * (height_ - 1) - iy;
+          ix += (ix < width_/2 ? 1 : -1) * width_/2;
         }
         try {
           filepos(ix, iy);
           // initial values to suppress warnings in case get fails
           char a = 0, b = 0;
-          _file.get(a);
-          _file.get(b);
+          file_.get(a);
+          file_.get(b);
           unsigned r = ((unsigned char)(a) << 8) | (unsigned char)(b);
           // for C++17 use if constexpr
           if (pixel_size_ == 4) {
-            _file.get(a);
-            _file.get(b);
+            file_.get(a);
+            file_.get(b);
             r = (r << 16) | ((unsigned char)(a) << 8) | (unsigned char)(b);
           }
           return real(r);
         }
         catch (const std::exception& e) {
-          // throw GeographicErr("Error reading " + _filename + ": "
+          // throw GeographicErr("Error reading " + filename_ + ": "
           //                      + e.what());
           // triggers complaints about the "binary '+'" under Visual Studio.
           // So use '+=' instead.
           std::string err("Error reading ");
-          err += _filename;
+          err += filename_;
           err += ": ";
           err += e.what();
           throw GeographicErr(err);
@@ -256,8 +255,8 @@ namespace GeographicLib {
      * or coarser.  For a 1' grid, the required RAM is 450MB; a 2.5' grid needs
      * 72MB; and a 5' grid needs 18MB.
      **********************************************************************/
-    void CacheAll() const { CacheArea(real(-Math::qd), real(0),
-                                      real( Math::qd), real(Math::td)); }
+    void CacheAll() const { CacheArea(real(-90), real(0),
+                                      real(90), real(360)); }
 
     /**
      * Clear the cache.  This never throws an error.  (This does nothing with a
@@ -282,7 +281,7 @@ namespace GeographicLib {
      *
      * The latitude should be in [&minus;90&deg;, 90&deg;].
      **********************************************************************/
-    Math::real operator()(real lat, real lon) const {
+    real operator()(real lat, real lon) const {
       return height(lat, lon);
     }
 
@@ -302,7 +301,7 @@ namespace GeographicLib {
      *   area.
      * @return converted height (meters).
      **********************************************************************/
-    Math::real ConvertHeight(real lat, real lon, real h,
+    real ConvertHeight(real lat, real lon, real h,
                              convertflag d) const {
       return h + real(d) * height(lat, lon);
     }
@@ -316,34 +315,34 @@ namespace GeographicLib {
      * @return geoid description, if available, in the data file; if
      *   absent, return "NONE".
      **********************************************************************/
-    const std::string& Description() const { return _description; }
+    const std::string& Description() const { return description_; }
 
     /**
      * @return date of the data file; if absent, return "UNKNOWN".
      **********************************************************************/
-    const std::string& DateTime() const { return _datetime; }
+    const std::string& DateTime() const { return datetime_; }
 
     /**
      * @return full file name used to load the geoid data.
      **********************************************************************/
-    const std::string& GeoidFile() const { return _filename; }
+    const std::string& GeoidFile() const { return filename_; }
 
     /**
      * @return "name" used to load the geoid data (from the first argument of
      *   the constructor).
      **********************************************************************/
-    const std::string& GeoidName() const { return _name; }
+    const std::string& GeoidName() const { return name_; }
 
     /**
      * @return directory used to load the geoid data.
      **********************************************************************/
-    const std::string& GeoidDirectory() const { return _dir; }
+    const std::string& GeoidDirectory() const { return dir_; }
 
     /**
      * @return interpolation method ("cubic" or "bilinear").
      **********************************************************************/
     const std::string Interpolation() const
-    { return std::string(_cubic ? "cubic" : "bilinear"); }
+    { return std::string(cubic_ ? "cubic" : "bilinear"); }
 
     /**
      * @return estimate of the maximum interpolation and quantization error
@@ -352,7 +351,7 @@ namespace GeographicLib {
      * This relies on the value being stored in the data file.  If the value is
      * absent, return &minus;1.
      **********************************************************************/
-    Math::real MaxError() const { return _maxerror; }
+    real MaxError() const { return maxerror_; }
 
     /**
      * @return estimate of the RMS interpolation and quantization error
@@ -361,7 +360,7 @@ namespace GeographicLib {
      * This relies on the value being stored in the data file.  If the value is
      * absent, return &minus;1.
      **********************************************************************/
-    Math::real RMSError() const { return _rmserror; }
+    real RMSError() const { return rmserror_; }
 
     /**
      * @return offset (meters).
@@ -369,7 +368,7 @@ namespace GeographicLib {
      * This in used in converting from the pixel values in the data file to
      * geoid heights.
      **********************************************************************/
-    Math::real Offset() const { return _offset; }
+    real Offset() const { return offset_; }
 
     /**
      * @return scale (meters).
@@ -377,51 +376,51 @@ namespace GeographicLib {
      * This in used in converting from the pixel values in the data file to
      * geoid heights.
      **********************************************************************/
-    Math::real Scale() const { return _scale; }
+    real Scale() const { return scale_; }
 
     /**
      * @return true if the object is constructed to be thread safe.
      **********************************************************************/
-    bool ThreadSafe() const { return _threadsafe; }
+    bool ThreadSafe() const { return threadsafe_; }
 
     /**
      * @return true if a data cache is active.
      **********************************************************************/
-    bool Cache() const { return _cache; }
+    bool Cache() const { return cache_; }
 
     /**
      * @return west edge of the cached area; the cache includes this edge.
      **********************************************************************/
-    Math::real CacheWest() const {
-      return _cache ? ((_xoffset + (_xsize == _width ? 0 : _cubic)
-                        + _width/2) % _width - _width/2) / _rlonres :
+    real CacheWest() const {
+      return cache_ ? ((xoffset_ + (xsize_ == width_ ? 0 : cubic_)
+                        + width_/2) % width_ - width_/2) / rlonres_ :
         0;
     }
 
     /**
      * @return east edge of the cached area; the cache excludes this edge.
      **********************************************************************/
-    Math::real CacheEast() const {
-      return  _cache ?
+    real CacheEast() const {
+      return  cache_ ?
         CacheWest() +
-        (_xsize - (_xsize == _width ? 0 : 1 + 2 * _cubic)) / _rlonres :
+        (xsize_ - (xsize_ == width_ ? 0 : 1 + 2 * cubic_)) / rlonres_ :
         0;
     }
 
     /**
      * @return north edge of the cached area; the cache includes this edge.
      **********************************************************************/
-    Math::real CacheNorth() const {
-      return _cache ? real(Math::qd) - (_yoffset + _cubic) / _rlatres : 0;
+    real CacheNorth() const {
+      return cache_ ? real(90) - (yoffset_ + cubic_) / rlatres_ : 0;
     }
 
     /**
      * @return south edge of the cached area; the cache excludes this edge
      *   unless it's the south pole.
      **********************************************************************/
-    Math::real CacheSouth() const {
-      return _cache ?
-        real(Math::qd) - ( _yoffset + _ysize - 1 - _cubic) / _rlatres :
+    real CacheSouth() const {
+      return cache_ ?
+        real(90) - ( yoffset_ + ysize_ - 1 - cubic_) / rlatres_ :
         0;
     }
 
@@ -431,7 +430,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the supported geoid models are all
      * based on this ellipsoid.)
      **********************************************************************/
-    Math::real EquatorialRadius() const
+    real EquatorialRadius() const
     { return Constants::WGS84_a(); }
 
     /**
@@ -440,7 +439,7 @@ namespace GeographicLib {
      * (The WGS84 value is returned because the supported geoid models are all
      * based on this ellipsoid.)
      **********************************************************************/
-    Math::real Flattening() const { return Constants::WGS84_f(); }
+    real Flattening() const { return Constants::WGS84_f(); }
     ///@}
 
     /**

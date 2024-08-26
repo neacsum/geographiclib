@@ -84,15 +84,14 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT TransverseMercatorExact {
   private:
-    typedef Math::real real;
     friend class TransverseMercator; // Allow TM to call the default constructor
     // Private default constructor to support TransverseMercator(a, f, exact)
     TransverseMercatorExact() {}; // Do nothing; used with exact = false.
     static const int numit_ = 10;
     real tol_, tol2_, taytol_;
-    real _a, _f, _k0, _mu, _mv, _e;
-    bool _extendp;
-    EllipticFunction _eEu, _eEv;
+    real a_, f_, k0_, mu_, mv_, e_;
+    bool extendp_;
+    EllipticFunction eEu_, eEv_;
 
     void zeta(real u, real snu, real cnu, real dnu,
               real v, real snv, real cnv, real dnv,
@@ -234,19 +233,19 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value used in
      *   the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return \e k0 central scale for the projection.  This is the value of \e
      *   k0 used in the constructor and is the scale on the central meridian.
      **********************************************************************/
-    Math::real CentralScale() const { return _k0; }
+    real CentralScale() const { return k0_; }
     ///@}
 
     /**

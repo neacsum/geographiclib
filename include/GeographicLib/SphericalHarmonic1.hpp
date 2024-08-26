@@ -52,10 +52,9 @@ namespace GeographicLib {
     };
 
   private:
-    typedef Math::real real;
-    SphericalEngine::coeff _c[2];
-    real _a;
-    unsigned _norm;
+    SphericalEngine::coeff c_[2];
+    real a_;
+    unsigned norm_;
 
   public:
     /**
@@ -92,12 +91,12 @@ namespace GeographicLib {
                        const std::vector<real>& S1,
                        int N1,
                        real a, unsigned norm = FULL)
-      : _a(a)
-      , _norm(norm) {
+      : a_(a)
+      , norm_(norm) {
       if (!(N1 <= N))
         throw GeographicErr("N1 cannot be larger that N");
-      _c[0] = SphericalEngine::coeff(C, S, N);
-      _c[1] = SphericalEngine::coeff(C1, S1, N1);
+      c_[0] = SphericalEngine::coeff(C, S, N);
+      c_[1] = SphericalEngine::coeff(C1, S1, N1);
     }
 
     /**
@@ -138,14 +137,14 @@ namespace GeographicLib {
                        const std::vector<real>& S1,
                        int N1, int nmx1, int mmx1,
                        real a, unsigned norm = FULL)
-      : _a(a)
-      , _norm(norm) {
+      : a_(a)
+      , norm_(norm) {
       if (!(nmx1 <= nmx))
         throw GeographicErr("nmx1 cannot be larger that nmx");
       if (!(mmx1 <= mmx))
         throw GeographicErr("mmx1 cannot be larger that mmx");
-      _c[0] = SphericalEngine::coeff(C, S, N, nmx, mmx);
-      _c[1] = SphericalEngine::coeff(C1, S1, N1, nmx1, mmx1);
+      c_[0] = SphericalEngine::coeff(C, S, N, nmx, mmx);
+      c_[1] = SphericalEngine::coeff(C1, S1, N1, nmx1, mmx1);
     }
 
     /**
@@ -167,19 +166,19 @@ namespace GeographicLib {
      * This routine requires constant memory and thus never throws
      * an exception.
      **********************************************************************/
-    Math::real operator()(real tau, real x, real y, real z) const {
+    real operator()(real tau, real x, real y, real z) const {
       real f[] = {1, tau};
       real v = 0;
       real dummy;
-      switch (_norm) {
+      switch (norm_) {
       case FULL:
         v = SphericalEngine::Value<false, SphericalEngine::FULL, 2>
-          (_c, f, x, y, z, _a, dummy, dummy, dummy);
+          (c_, f, x, y, z, a_, dummy, dummy, dummy);
         break;
       case SCHMIDT:
       default:                  // To avoid compiler warnings
         v = SphericalEngine::Value<false, SphericalEngine::SCHMIDT, 2>
-          (_c, f, x, y, z, _a, dummy, dummy, dummy);
+          (c_, f, x, y, z, a_, dummy, dummy, dummy);
         break;
       }
       return v;
@@ -203,19 +202,19 @@ namespace GeographicLib {
      * computed.  This routine requires constant memory and thus never throws
      * an exception.
      **********************************************************************/
-    Math::real operator()(real tau, real x, real y, real z,
+    real operator()(real tau, real x, real y, real z,
                           real& gradx, real& grady, real& gradz) const {
       real f[] = {1, tau};
       real v = 0;
-      switch (_norm) {
+      switch (norm_) {
       case FULL:
         v = SphericalEngine::Value<true, SphericalEngine::FULL, 2>
-          (_c, f, x, y, z, _a, gradx, grady, gradz);
+          (c_, f, x, y, z, a_, gradx, grady, gradz);
         break;
       case SCHMIDT:
       default:                  // To avoid compiler warnings
         v = SphericalEngine::Value<true, SphericalEngine::SCHMIDT, 2>
-          (_c, f, x, y, z, _a, gradx, grady, gradz);
+          (c_, f, x, y, z, a_, gradx, grady, gradz);
         break;
       }
       return v;
@@ -247,21 +246,21 @@ namespace GeographicLib {
      **********************************************************************/
     CircularEngine Circle(real tau, real p, real z, bool gradp) const {
       real f[] = {1, tau};
-      switch (_norm) {
+      switch (norm_) {
       case FULL:
         return gradp ?
           SphericalEngine::Circle<true, SphericalEngine::FULL, 2>
-          (_c, f, p, z, _a) :
+          (c_, f, p, z, a_) :
           SphericalEngine::Circle<false, SphericalEngine::FULL, 2>
-          (_c, f, p, z, _a);
+          (c_, f, p, z, a_);
         break;
       case SCHMIDT:
       default:                  // To avoid compiler warnings
         return gradp ?
           SphericalEngine::Circle<true, SphericalEngine::SCHMIDT, 2>
-          (_c, f, p, z, _a) :
+          (c_, f, p, z, a_) :
           SphericalEngine::Circle<false, SphericalEngine::SCHMIDT, 2>
-          (_c, f, p, z, _a);
+          (c_, f, p, z, a_);
         break;
       }
     }
@@ -270,12 +269,12 @@ namespace GeographicLib {
      * @return the zeroth SphericalEngine::coeff object.
      **********************************************************************/
     const SphericalEngine::coeff& Coefficients() const
-    { return _c[0]; }
+    { return c_[0]; }
     /**
      * @return the first SphericalEngine::coeff object.
      **********************************************************************/
     const SphericalEngine::coeff& Coefficients1() const
-    { return _c[1]; }
+    { return c_[1]; }
   };
 
 } // namespace GeographicLib

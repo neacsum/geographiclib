@@ -35,7 +35,6 @@ set (SOURCES
   MGRS.cpp
   MagneticCircle.cpp
   MagneticModel.cpp
-  Math.cpp
   NormalGravity.cpp
   OSGB.cpp
   PolarStereographic.cpp

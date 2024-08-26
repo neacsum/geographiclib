@@ -25,7 +25,6 @@ TEST_MAIN (int /*argc*/, char** /*argv*/)
   return ret;
 }
 
-typedef Math::real real;
 
 SUITE (Geodesic)
 {

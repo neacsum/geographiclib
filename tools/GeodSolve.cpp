@@ -22,10 +22,9 @@
 // Squelch warnings about potentially uninitialized local variables
 #  pragma warning (disable: 4701)
 #endif
+using GeographicLib::real;
 
 int usage (int retval, bool brief);
-
-typedef GeographicLib::Math::real real;
 
 std::string LatLonString(real lat, real lon, int prec, bool dms, char dmssep,
                          bool longfirst) {
@@ -307,7 +306,7 @@ int main(int argc, const char* const argv[]) {
             using std::copysign;
             // map +/-0 -> -/+180; +/-180 -> -/+0
             // this depends on abs(azi2) <= 180
-            azi2 = copysign(azi2 + copysign(real(Math::hd), -azi2), -azi2);
+            azi2 = copysign(azi2 + copysign(real(180), -azi2), -azi2);
           }
           *output << AzimuthString(azi2, prec, dms, dmssep) << " "
                   << DistanceStrings(s12, a12, full, arcmode, prec, dms);
@@ -347,7 +346,7 @@ int main(int argc, const char* const argv[]) {
             using std::copysign;
             // map +/-0 -> -/+180; +/-180 -> -/+0
             // this depends on abs(azi2) <= 180
-            azi2 = copysign(azi2 + copysign(real(Math::hd), -azi2), -azi2);
+            azi2 = copysign(azi2 + copysign(real(180), -azi2), -azi2);
           }
           *output << LatLonString(lat2, lon2, prec, dms, dmssep, longfirst)
                   << " " << AzimuthString(azi2, prec, dms, dmssep);

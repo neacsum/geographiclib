@@ -20,26 +20,26 @@ namespace GeographicLib {
                                        real& BX, real& BY, real& BZ,
                                        real& BXt, real& BYt, real& BZt) const {
     real BXc = 0, BYc = 0, BZc = 0;
-    _circ0(slam, clam, BX, BY, BZ);
-    _circ1(slam, clam, BXt, BYt, BZt);
-    if (_constterm)
-      _circ2(slam, clam, BXc, BYc, BZc);
-    if (_interpolate) {
-      BXt = (BXt - BX) / _dt0;
-      BYt = (BYt - BY) / _dt0;
-      BZt = (BZt - BZ) / _dt0;
+    circ0_(slam, clam, BX, BY, BZ);
+    circ1_(slam, clam, BXt, BYt, BZt);
+    if (constterm_)
+      circ2_(slam, clam, BXc, BYc, BZc);
+    if (interpolate_) {
+      BXt = (BXt - BX) / dt0_;
+      BYt = (BYt - BY) / dt0_;
+      BZt = (BZt - BZ) / dt0_;
     }
-    BX += _t1 * BXt + BXc;
-    BY += _t1 * BYt + BYc;
-    BZ += _t1 * BZt + BZc;
+    BX += t1_ * BXt + BXc;
+    BY += t1_ * BYt + BYc;
+    BZ += t1_ * BZt + BZc;
 
-    BXt *= - _a;
-    BYt *= - _a;
-    BZt *= - _a;
+    BXt *= - a_;
+    BYt *= - a_;
+    BZt *= - a_;
 
-    BX *= - _a;
-    BY *= - _a;
-    BZ *= - _a;
+    BX *= - a_;
+    BY *= - a_;
+    BZ *= - a_;
   }
 
   void MagneticCircle::FieldGeocentric(real lon,
@@ -56,7 +56,7 @@ namespace GeographicLib {
     real slam, clam;
     Math::sincosd(lon, slam, clam);
     real M[Geocentric::dim2_];
-    Geocentric::Rotation(_sphi, _cphi, slam, clam, M);
+    Geocentric::Rotation(sphi_, cphi_, slam, clam, M);
     real BX, BY, BZ, BXt, BYt, BZt; // Components in geocentric basis
     FieldGeocentric(slam, clam, BX, BY, BZ, BXt, BYt, BZt);
     if (diffp)

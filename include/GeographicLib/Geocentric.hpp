@@ -66,7 +66,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Geocentric {
   private:
-    typedef Math::real real;
     friend class LocalCartesian;
     friend class MagneticCircle; // MagneticCircle uses Rotation
     friend class MagneticModel;  // MagneticModel uses IntForward
@@ -75,7 +74,7 @@ namespace GeographicLib {
     friend class NormalGravity;  // NormalGravity uses IntForward
     static const size_t dim_ = 3;
     static const size_t dim2_ = dim_ * dim_;
-    real _a, _f, _e2, _e2m, _e2a, _e4a, _maxrad;
+    real a_, f_, e2_, e2m_, e2a_, e4a_, maxrad_;
     static void Rotation(real sphi, real cphi, real slam, real clam,
                          real M[dim2_]);
     static void Rotate(const real M[dim2_], real x, real y, real z,
@@ -115,7 +114,7 @@ namespace GeographicLib {
     /**
      * A default constructor (for use by NormalGravity).
      **********************************************************************/
-    Geocentric() : _a(-1) {}
+    Geocentric() : a_(-1) {}
 
     /**
      * Convert from geodetic to geocentric coordinates.
@@ -240,20 +239,20 @@ namespace GeographicLib {
     /**
      * @return true if the object has been initialized.
      **********************************************************************/
-    bool Init() const { return _a > 0; }
+    bool Init() const { return a_ > 0; }
     /**
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const
-    { return Init() ? _a : Math::NaN(); }
+    real EquatorialRadius() const
+    { return Init() ? a_ : Math::NaN(); }
 
     /**
      * @return \e f the  flattening of the ellipsoid.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const
-    { return Init() ? _f : Math::NaN(); }
+    real Flattening() const
+    { return Init() ? f_ : Math::NaN(); }
     ///@}
 
     /**

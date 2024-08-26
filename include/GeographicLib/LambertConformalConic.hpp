@@ -62,11 +62,10 @@ namespace GeographicLib {
    **********************************************************************/
   class GEOGRAPHICLIB_EXPORT LambertConformalConic {
   private:
-    typedef Math::real real;
     real eps_, epsx_, ahypover_;
-    real _a, _f, _fm, _e2, _es;
-    real _sign, _n, _nc, _t0nm1, _scale, _lat0, _k0;
-    real _scbet0, _tchi0, _scchi0, _psi0, _nrho0, _drhomax;
+    real a_, f_, fm_, e2_, es_;
+    real sign_, n_, nc_, t0nm1_, scale_, lat0_, k0_;
+    real scbet0_, tchi0_, scchi0_, psi0_, nrho0_, drhomax_;
     static const int numit_ = 5;
     static real hyp(real x) {
       using std::hypot;
@@ -136,8 +135,8 @@ namespace GeographicLib {
     }
     // Deatanhe(x,y) = eatanhe((x-y)/(1-e^2*x*y))/(x-y)
     real Deatanhe(real x, real y) const {
-      real t = x - y, d = 1 - _e2 * x * y;
-      return t != 0 ? Math::eatanhe(t / d, _es) / t : _e2 / d;
+      real t = x - y, d = 1 - e2_ * x * y;
+      return t != 0 ? Math::eatanhe(t / d, es_) / t : e2_ / d;
     }
     void Init(real sphi1, real cphi1, real sphi2, real cphi2, real k1);
   public:
@@ -287,13 +286,13 @@ namespace GeographicLib {
      * @return \e a the equatorial radius of the ellipsoid (meters).  This is
      *   the value used in the constructor.
      **********************************************************************/
-    Math::real EquatorialRadius() const { return _a; }
+    real EquatorialRadius() const { return a_; }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the
      *   value used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _f; }
+    real Flattening() const { return f_; }
 
     /**
      * @return latitude of the origin for the projection (degrees).
@@ -302,13 +301,13 @@ namespace GeographicLib {
      * 1-parallel constructor and lies between \e stdlat1 and \e stdlat2 in the
      * 2-parallel constructors.
      **********************************************************************/
-    Math::real OriginLatitude() const { return _lat0; }
+    real OriginLatitude() const { return lat0_; }
 
     /**
      * @return central scale for the projection.  This is the scale on the
      *   latitude of origin.
      **********************************************************************/
-    Math::real CentralScale() const { return _k0; }
+    real CentralScale() const { return k0_; }
     ///@}
 
     /**

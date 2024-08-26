@@ -32,7 +32,7 @@ namespace GeographicLib {
     }
   }
 
-  Math::real DMS::Decode(const std::string& dms, flag& ind) {
+  real DMS::Decode(const std::string& dms, flag& ind) {
     // Here's a table of the allowed characters
 
     // S unicode   dec  UTF-8      descripton
@@ -189,7 +189,7 @@ namespace GeographicLib {
     return v;
   }
 
-  Math::real DMS::InternalDecode(const string& dmsa, flag& ind) {
+  real DMS::InternalDecode(const string& dmsa, flag& ind) {
     string errormsg;
     do {                       // Executed once (provides the ability to break)
       int sign = 1;
@@ -333,14 +333,14 @@ namespace GeographicLib {
         break;
       }
       // Note that we accept 59.999999... even though it rounds to 60.
-      if (ipieces[1] >= Math::dm || fpieces[1] > Math::dm ) {
+      if (ipieces[1] >= 60 || fpieces[1] > 60 ) {
         errormsg = "Minutes " + Utility::str(fpieces[1])
-          + " not in range [0, " + to_string(Math::dm) + ")";
+          + " not in range [0, 60)";
         break;
       }
-      if (ipieces[2] >= Math::ms || fpieces[2] > Math::ms) {
+      if (ipieces[2] >= 60 || fpieces[2] > 60) {
         errormsg = "Seconds " + Utility::str(fpieces[2])
-          + " not in range [0, " + to_string(Math::ms) + ")";
+          + " not in range [0, 60)";
         break;
       }
       ind = ind1;
@@ -348,9 +348,9 @@ namespace GeographicLib {
       // might be able to offer a better diagnostic).
       return real(sign) *
         ( fpieces[2] != 0 ?
-          (Math::ms*(Math::dm*fpieces[0] + fpieces[1]) + fpieces[2])/Math::ds :
+          (60*(60*fpieces[0] + fpieces[1]) + fpieces[2])/3600 :
           ( fpieces[1] != 0 ?
-            (Math::dm*fpieces[0] + fpieces[1]) / Math::dm : fpieces[0] ) );
+            (60*fpieces[0] + fpieces[1]) / 60 : fpieces[0] ) );
     } while (false);
     real val = Utility::nummatch<real>(dmsa);
     if (val == 0)
@@ -382,15 +382,14 @@ namespace GeographicLib {
     real
       lat1 = ia == LATITUDE ? a : b,
       lon1 = ia == LATITUDE ? b : a;
-    if (fabs(lat1) > Math::qd)
+    if (fabs(lat1) > 90)
       throw GeographicErr("Latitude " + Utility::str(lat1)
-                          + "d not in [-" + to_string(Math::qd)
-                          + "d, " + to_string(Math::qd) + "d]");
+                          + "d not in [-90d, +90d]");
     lat = lat1;
     lon = lon1;
   }
 
-  Math::real DMS::DecodeAngle(const string& angstr) {
+  real DMS::DecodeAngle(const string& angstr) {
     flag ind;
     real ang = Decode(angstr, ind);
     if (ind != NONE)
@@ -399,7 +398,7 @@ namespace GeographicLib {
     return ang;
   }
 
-  Math::real DMS::DecodeAzimuth(const string& azistr) {
+  real DMS::DecodeAzimuth(const string& azistr) {
     flag ind;
     real azi = Decode(azistr, ind);
     if (ind == LATITUDE)
@@ -419,16 +418,16 @@ namespace GeographicLib {
     // 15 - 2 * trailing = ceiling(log10(2^53/90/60^trailing)).
     // This suffices to give full real precision for numbers in [-90,90]
     prec = min(15 + Math::extra_digits() - 2 * unsigned(trailing), prec);
-    real scale = trailing == MINUTE ? Math::dm :
-      (trailing == SECOND ? Math::ds : 1);
+    real scale = trailing == MINUTE ? 60 :
+      (trailing == SECOND ? 3600 : 1);
     if (ind == AZIMUTH) {
       angle = Math::AngNormalize(angle);
       // Only angles strictly less than 0 can become 360; since +/-180 are
       // folded together, we convert -0 to +0 (instead of 360).
       if (angle < 0)
-        angle += Math::td;
+        angle += 360;
       else
-        angle = Math::real(0) + angle;
+        angle = real(0) + angle;
     }
     int sign = signbit(angle) ? -1 : 1;
     angle *= sign;
@@ -455,21 +454,21 @@ namespace GeographicLib {
         else
           s = s.substr(p);
       }
-      // Now i in [0,Math::dm] or [0,Math::ds] for MINUTE/DEGREE
+      // Now i in [0,60] or [0,3600] for MINUTE/DEGREE
       switch (trailing) {
       case MINUTE:
-        minute = to_string(i % Math::dm) + s; i /= Math::dm;
+        minute = to_string(i % 60) + s; i /= 60;
         degree = Utility::str(i + idegree, 0); // no overflow since i in [0,1]
         break;
       default:                  // case SECOND:
-        second = to_string(i % Math::ms) + s; i /= Math::ms;
-        minute = to_string(i % Math::dm)    ; i /= Math::dm;
+        second = to_string(i % 60) + s; i /= 60;
+        minute = to_string(i % 60)    ; i /= 60;
         degree = Utility::str(i + idegree, 0); // no overflow since i in [0,1]
         break;
       }
       break;
     }
-    // No glue together degree+minute+second with
+    // Now glue together degree+minute+second with
     // sign + zero-fill + delimiters + hemisphere
     ostringstream str;
     if (prec) ++prec;           // Extra width for decimal point

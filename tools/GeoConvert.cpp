@@ -23,7 +23,6 @@ int usage (int retval, bool brief);
 int main(int argc, const char* const argv[]) {
   try {
     using namespace GeographicLib;
-    typedef Math::real real;
     Utility::set_digits();
     enum { GEOGRAPHIC, DMS, UTMUPS, MGRS, CONVERGENCE };
     int outputmode = GEOGRAPHIC;

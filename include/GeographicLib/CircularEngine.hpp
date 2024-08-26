@@ -51,52 +51,51 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT CircularEngine {
   private:
-    typedef Math::real real;
     enum normalization {
       FULL = SphericalEngine::FULL,
       SCHMIDT = SphericalEngine::SCHMIDT,
     };
-    int _mM;
-    bool _gradp;
-    unsigned _norm;
+    int mM_;
+    bool gradp_;
+    unsigned norm_;
     real _a, _r, _u, _t;
-    std::vector<real> _wc, _ws, _wrc, _wrs, _wtc, _wts;
-    real _q, _uq, _uq2;
+    std::vector<real> wc_, ws_, wrc_, wrs_, wtc_, wts_;
+    real q_, uq_, uq2_;
 
-    Math::real Value(bool gradp, real sl, real cl,
+    real Value(bool gradp, real sl, real cl,
                      real& gradx, real& grady, real& gradz) const;
 
     friend class SphericalEngine;
     CircularEngine(int M, bool gradp, unsigned norm,
                    real a, real r, real u, real t)
-      : _mM(M)
-      , _gradp(gradp)
-      , _norm(norm)
+      : mM_(M)
+      , gradp_(gradp)
+      , norm_(norm)
       , _a(a)
       , _r(r)
       , _u(u)
       , _t(t)
-      , _wc(std::vector<real>(_mM + 1, 0))
-      , _ws(std::vector<real>(_mM + 1, 0))
-      , _wrc(std::vector<real>(_gradp ? _mM + 1 : 0, 0))
-      , _wrs(std::vector<real>(_gradp ? _mM + 1 : 0, 0))
-      , _wtc(std::vector<real>(_gradp ? _mM + 1 : 0, 0))
-      , _wts(std::vector<real>(_gradp ? _mM + 1 : 0, 0))
+      , wc_(std::vector<real>(mM_ + 1, 0))
+      , ws_(std::vector<real>(mM_ + 1, 0))
+      , wrc_(std::vector<real>(gradp_ ? mM_ + 1 : 0, 0))
+      , wrs_(std::vector<real>(gradp_ ? mM_ + 1 : 0, 0))
+      , wtc_(std::vector<real>(gradp_ ? mM_ + 1 : 0, 0))
+      , wts_(std::vector<real>(gradp_ ? mM_ + 1 : 0, 0))
       {
-        _q = _a / _r;
-        _uq = _u * _q;
-        _uq2 = Math::sq(_uq);
+        q_ = _a / _r;
+        uq_ = _u * q_;
+        uq2_ = Math::sq(uq_);
       }
 
     void SetCoeff(int m, real wc, real ws)
-    { _wc[m] = wc; _ws[m] = ws; }
+    { wc_[m] = wc; ws_[m] = ws; }
 
     void SetCoeff(int m, real wc, real ws,
                   real wrc, real wrs, real wtc, real wts) {
-      _wc[m] = wc; _ws[m] = ws;
-      if (_gradp) {
-        _wrc[m] = wrc; _wrs[m] = wrs;
-        _wtc[m] = wtc; _wts[m] = wts;
+      wc_[m] = wc; ws_[m] = ws;
+      if (gradp_) {
+        wrc_[m] = wrc; wrs_[m] = wrs;
+        wtc_[m] = wtc; wts_[m] = wts;
       }
     }
 
@@ -108,8 +107,8 @@ namespace GeographicLib {
      * of SphericalHarmonic::Circle.
      **********************************************************************/
     CircularEngine()
-      : _mM(-1)
-      , _gradp(true)
+      : mM_(-1)
+      , gradp_(true)
       , _u(0)
       , _t(1)
       {}
@@ -125,7 +124,7 @@ namespace GeographicLib {
      * The arguments must satisfy <i>sinlon</i><sup>2</sup> +
      * <i>coslon</i><sup>2</sup> = 1.
      **********************************************************************/
-    Math::real operator()(real sinlon, real coslon) const {
+    real operator()(real sinlon, real coslon) const {
       real dummy;
       return Value(false, sinlon, coslon, dummy, dummy, dummy);
     }
@@ -136,7 +135,7 @@ namespace GeographicLib {
      * @param[in] lon the longitude (degrees).
      * @return \e V the value of the sum.
      **********************************************************************/
-    Math::real operator()(real lon) const {
+    real operator()(real lon) const {
       real sinlon, coslon;
       Math::sincosd(lon, sinlon, coslon);
       return (*this)(sinlon, coslon);
@@ -159,7 +158,7 @@ namespace GeographicLib {
      * touched.  The arguments must satisfy <i>sinlon</i><sup>2</sup> +
      * <i>coslon</i><sup>2</sup> = 1.
      **********************************************************************/
-    Math::real operator()(real sinlon, real coslon,
+    real operator()(real sinlon, real coslon,
                           real& gradx, real& grady, real& gradz) const {
       return Value(true, sinlon, coslon, gradx, grady, gradz);
     }
@@ -178,7 +177,7 @@ namespace GeographicLib {
      * SphericalHarmonic::Circle).  If not, \e gradx, etc., will not be
      * touched.
      **********************************************************************/
-    Math::real operator()(real lon,
+    real operator()(real lon,
                           real& gradx, real& grady, real& gradz) const {
       real sinlon, coslon;
       Math::sincosd(lon, sinlon, coslon);

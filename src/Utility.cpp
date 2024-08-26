@@ -1,6 +1,6 @@
 /**
  * \file Utility.cpp
- * \brief Implementation for GeographicLib::Utility class
+ * \brief Implementation for GeographicLib::Utility namespace
  *
  * Copyright (c) Charles Karney (2011-2022) <karney@alum.mit.edu> and licensed
  * under the MIT/X11 License.  For more information, see
@@ -15,61 +15,80 @@
 #  pragma warning (disable: 4996)
 #endif
 
+using namespace std;
+
 namespace GeographicLib {
 
-  using namespace std;
+namespace Utility {
 
-  int Utility::day(int y, int m, int d) {
-    // Convert from date to sequential day and vice versa
-    //
-    // Here is some code to convert a date to sequential day and vice
-    // versa. The sequential day is numbered so that January 1, 1 AD is day 1
-    // (a Saturday). So this is offset from the "Julian" day which starts the
-    // numbering with 4713 BC.
-    //
-    // This is inspired by a talk by John Conway at the John von Neumann
-    // National Supercomputer Center when he described his Doomsday algorithm
-    // for figuring the day of the week. The code avoids explicitly doing ifs
-    // (except for the decision of whether to use the Julian or Gregorian
-    // calendar). Instead the equivalent result is achieved using integer
-    // arithmetic. I got this idea from the routine for the day of the week
-    // in MACLisp (I believe that that routine was written by Guy Steele).
-    //
-    // There are three issues to take care of
-    //
-    // 1. the rules for leap years,
-    // 2. the inconvenient placement of leap days at the end of February,
-    // 3. the irregular pattern of month lengths.
-    //
-    // We deal with these as follows:
-    //
-    // 1. Leap years are given by simple rules which are straightforward to
-    // accommodate.
-    //
-    // 2. We simplify the calculations by moving January and February to the
-    // previous year. Here we internally number the months March–December,
-    // January, February as 0–9, 10, 11.
-    //
-    // 3. The pattern of month lengths from March through January is regular
-    // with a 5-month period—31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31. The
-    // 5-month period is 153 days long. Since February is now at the end of
-    // the year, we don't need to include its length in this part of the
-    // calculation.
-    bool greg = gregorian(y, m, d);
-    y += (m + 9) / 12 - 1; // Move Jan and Feb to previous year,
-    m = (m + 9) % 12;      // making March month 0.
-    return
-      (1461 * y) / 4 // Julian years converted to days.  Julian year is 365 +
-      // 1/4 = 1461/4 days.
-      // Gregorian leap year corrections.  The 2 offset with respect to the
-      // Julian calendar synchronizes the vernal equinox with that at the
-      // time of the Council of Nicea (325 AD).
-      + (greg ? (y / 100) / 4 - (y / 100) + 2 : 0)
-      + (153 * m + 2) / 5     // The zero-based start of the m'th month
-      + d - 1                 // The zero-based day
-      - 305; // The number of days between March 1 and December 31.
-    // This makes 0001-01-01 day 1
-  }
+  static bool gregorian (int y, int m, int d) {
+  // The original cut over to the Gregorian calendar in Pope Gregory XIII's
+  // time had 1582-10-04 followed by 1582-10-15. Here we implement the
+  // switch over used by the English-speaking world where 1752-09-02 was
+  // followed by 1752-09-14. We also assume that the year always begins
+  // with January 1, whereas in reality it often was reckoned to begin in
+  // March.
+  return 100 * (100 * y + m) + d >= 17520914; // or 15821015
+}
+static bool gregorian (int s) {
+  return s >= 639799;       // 1752-09-14
+}
+
+
+int day (int y, int m, int d) {
+  // Convert from date to sequential day and vice versa
+  //
+  // Here is some code to convert a date to sequential day and vice
+  // versa. The sequential day is numbered so that January 1, 1 AD is day 1
+  // (a Saturday). So this is offset from the "Julian" day which starts the
+  // numbering with 4713 BC.
+  //
+  // This is inspired by a talk by John Conway at the John von Neumann
+  // National Supercomputer Center when he described his Doomsday algorithm
+  // for figuring the day of the week. The code avoids explicitly doing ifs
+  // (except for the decision of whether to use the Julian or Gregorian
+  // calendar). Instead the equivalent result is achieved using integer
+  // arithmetic. I got this idea from the routine for the day of the week
+  // in MACLisp (I believe that that routine was written by Guy Steele).
+  //
+  // There are three issues to take care of
+  //
+  // 1. the rules for leap years,
+  // 2. the inconvenient placement of leap days at the end of February,
+  // 3. the irregular pattern of month lengths.
+  //
+  // We deal with these as follows:
+  //
+  // 1. Leap years are given by simple rules which are straightforward to
+  // accommodate.
+  //
+  // 2. We simplify the calculations by moving January and February to the
+  // previous year. Here we internally number the months March–December,
+  // January, February as 0–9, 10, 11.
+  //
+  // 3. The pattern of month lengths from March through January is regular
+  // with a 5-month period—31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31. The
+  // 5-month period is 153 days long. Since February is now at the end of
+  // the year, we don't need to include its length in this part of the
+  // calculation.
+  bool greg = gregorian (y, m, d);
+  y += (m + 9) / 12 - 1; // Move Jan and Feb to previous year,
+  m = (m + 9) % 12;      // making March month 0.
+  return
+    (1461 * y) / 4 // Julian years converted to days.  Julian year is 365 +
+    // 1/4 = 1461/4 days.
+    // Gregorian leap year corrections.  The 2 offset with respect to the
+    // Julian calendar synchronizes the vernal equinox with that at the
+    // time of the Council of Nicea (325 AD).
+    +(greg ? (y / 100) / 4 - (y / 100) + 2 : 0)
+    + (153 * m + 2) / 5     // The zero-based start of the m'th month
+    + d - 1                 // The zero-based day
+    - 305; // The number of days between March 1 and December 31.
+  // This makes 0001-01-01 day 1
+}
+
+}
+
 
   int Utility::day(int y, int m, int d, bool check) {
     int s = day(y, m, d);

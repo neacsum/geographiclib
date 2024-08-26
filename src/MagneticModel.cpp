@@ -36,37 +36,37 @@ namespace GeographicLib {
 
   MagneticModel::MagneticModel(const std::string& name, const std::string& path,
                                const Geocentric& earth, int Nmax, int Mmax)
-    : _name(name)
-    , _dir(path)
-    , _description("NONE")
-    , _date("UNKNOWN")
-    , _t0(Math::NaN())
-    , _dt0(1)
-    , _tmin(Math::NaN())
-    , _tmax(Math::NaN())
-    , _a(Math::NaN())
-    , _hmin(Math::NaN())
-    , _hmax(Math::NaN())
-    , _nNmodels(1)
-    , _nNconstants(0)
-    , _nmx(-1)
-    , _mmx(-1)
-    , _norm(SphericalHarmonic::SCHMIDT)
-    , _earth(earth)
+    : name_(name)
+    , dir_(path)
+    , description_("NONE")
+    , date_("UNKNOWN")
+    , t0_(Math::NaN())
+    , dt0_(1)
+    , tmin_(Math::NaN())
+    , tmax_(Math::NaN())
+    , a_(Math::NaN())
+    , hmin_(Math::NaN())
+    , hmax_(Math::NaN())
+    , nNmodels_(1)
+    , nNconstants_(0)
+    , nmx_(-1)
+    , mmx_(-1)
+    , norm_(SphericalHarmonic::SCHMIDT)
+    , earth_(earth)
   {
-    if (_dir.empty())
-      _dir = DefaultMagneticPath();
+    if (dir_.empty())
+      dir_ = DefaultMagneticPath();
     bool truncate = Nmax >= 0 || Mmax >= 0;
     if (truncate) {
       if (Nmax >= 0 && Mmax < 0) Mmax = Nmax;
       if (Nmax < 0) Nmax = numeric_limits<int>::max();
       if (Mmax < 0) Mmax = numeric_limits<int>::max();
     }
-    ReadMetadata(_name);
-    _gG.resize(_nNmodels + 1 + _nNconstants);
-    _hH.resize(_nNmodels + 1 + _nNconstants);
+    ReadMetadata(name_);
+    gG_.resize(nNmodels_ + 1 + nNconstants_);
+    hH_.resize(nNmodels_ + 1 + nNconstants_);
     {
-      string coeff = _filename + ".cof";
+      string coeff = filename_ + ".cof";
       ifstream coeffstr(coeff.c_str(), ios::binary);
       if (!coeffstr.good())
         throw GeographicErr("Error opening " + coeff);
@@ -75,18 +75,18 @@ namespace GeographicLib {
       if (!coeffstr.good())
         throw GeographicErr("No header in " + coeff);
       id[idlength_] = '\0';
-      if (_id != string(id))
-        throw GeographicErr("ID mismatch: " + _id + " vs " + id);
-      for (int i = 0; i < _nNmodels + 1 + _nNconstants; ++i) {
+      if (id_ != string(id))
+        throw GeographicErr("ID mismatch: " + id_ + " vs " + id);
+      for (int i = 0; i < nNmodels_ + 1 + nNconstants_; ++i) {
         int N, M;
         if (truncate) { N = Nmax; M = Mmax; }
-        SphericalEngine::coeff::readcoeffs(coeffstr, N, M, _gG[i], _hH[i],
+        SphericalEngine::coeff::readcoeffs(coeffstr, N, M, gG_[i], hH_[i],
                                            truncate);
-        if (!(M < 0 || _gG[i][0] == 0))
+        if (!(M < 0 || gG_[i][0] == 0))
           throw GeographicErr("A degree 0 term is not permitted");
-        _harm.push_back(SphericalHarmonic(_gG[i], _hH[i], N, N, M, _a, _norm));
-        _nmx = max(_nmx, _harm.back().Coefficients().nmx());
-        _mmx = max(_mmx, _harm.back().Coefficients().mmx());
+        harm_.push_back(SphericalHarmonic(gG_[i], hH_[i], N, N, M, a_, norm_));
+        nmx_ = max(nmx_, harm_.back().Coefficients().nmx());
+        mmx_ = max(mmx_, harm_.back().Coefficients().mmx());
       }
       int pos = int(coeffstr.tellg());
       coeffstr.seekg(0, ios::end);
@@ -97,57 +97,57 @@ namespace GeographicLib {
 
   void MagneticModel::ReadMetadata(const string& name) {
     const char* spaces = " \t\n\v\f\r";
-    _filename = _dir + "/" + name + ".wmm";
-    ifstream metastr(_filename.c_str());
+    filename_ = dir_ + "/" + name + ".wmm";
+    ifstream metastr(filename_.c_str());
     if (!metastr.good())
-      throw GeographicErr("Cannot open " + _filename);
+      throw GeographicErr("Cannot open " + filename_);
     string line;
     getline(metastr, line);
     if (!(line.size() >= 6 && line.substr(0,5) == "WMMF-"))
-      throw GeographicErr(_filename + " does not contain WMMF-n signature");
+      throw GeographicErr(filename_ + " does not contain WMMF-n signature");
     string::size_type n = line.find_first_of(spaces, 5);
     if (n != string::npos)
       n -= 5;
     string version(line, 5, n);
     if (!(version == "1" || version == "2"))
-      throw GeographicErr("Unknown version in " + _filename + ": " + version);
+      throw GeographicErr("Unknown version in " + filename_ + ": " + version);
     string key, val;
     while (getline(metastr, line)) {
       if (!Utility::ParseLine(line, key, val))
         continue;
       // Process key words
       if (key == "Name")
-        _name = val;
+        name_ = val;
       else if (key == "Description")
-        _description = val;
+        description_ = val;
       else if (key == "ReleaseDate")
-        _date = val;
+        date_ = val;
       else if (key == "Radius")
-        _a = Utility::val<real>(val);
+        a_ = Utility::val<real>(val);
       else if (key == "Type") {
         if (!(val == "Linear" || val == "linear"))
           throw GeographicErr("Only linear models are supported");
       } else if (key == "Epoch")
-        _t0 = Utility::val<real>(val);
+        t0_ = Utility::val<real>(val);
       else if (key == "DeltaEpoch")
-        _dt0 = Utility::val<real>(val);
+        dt0_ = Utility::val<real>(val);
       else if (key == "NumModels")
-        _nNmodels = Utility::val<int>(val);
+        nNmodels_ = Utility::val<int>(val);
       else if (key == "NumConstants")
-        _nNconstants = Utility::val<int>(val);
+        nNconstants_ = Utility::val<int>(val);
       else if (key == "MinTime")
-        _tmin = Utility::val<real>(val);
+        tmin_ = Utility::val<real>(val);
       else if (key == "MaxTime")
-        _tmax = Utility::val<real>(val);
+        tmax_ = Utility::val<real>(val);
       else if (key == "MinHeight")
-        _hmin = Utility::val<real>(val);
+        hmin_ = Utility::val<real>(val);
       else if (key == "MaxHeight")
-        _hmax = Utility::val<real>(val);
+        hmax_ = Utility::val<real>(val);
       else if (key == "Normalization") {
         if (val == "FULL" || val == "Full" || val == "full")
-          _norm = SphericalHarmonic::FULL;
+          norm_ = SphericalHarmonic::FULL;
         else if (val == "SCHMIDT" || val == "Schmidt" || val == "schmidt")
-          _norm = SphericalHarmonic::SCHMIDT;
+          norm_ = SphericalHarmonic::SCHMIDT;
         else
           throw GeographicErr("Unknown normalization " + val);
       } else if (key == "ByteOrder") {
@@ -156,63 +156,63 @@ namespace GeographicLib {
         else if (!(val == "Little" || val == "little"))
           throw GeographicErr("Unknown byte ordering " + val);
       } else if (key == "ID")
-        _id = val;
+        id_ = val;
       // else unrecognized keywords are skipped
     }
     // Check values
-    if (!(isfinite(_a) && _a > 0))
+    if (!(isfinite(a_) && a_ > 0))
       throw GeographicErr("Reference radius must be positive");
-    if (!(_t0 > 0))
+    if (!(t0_ > 0))
       throw GeographicErr("Epoch time not defined");
-    if (_tmin >= _tmax)
+    if (tmin_ >= tmax_)
       throw GeographicErr("Min time exceeds max time");
-    if (_hmin >= _hmax)
+    if (hmin_ >= hmax_)
       throw GeographicErr("Min height exceeds max height");
-    if (int(_id.size()) != idlength_)
+    if (int(id_.size()) != idlength_)
       throw GeographicErr("Invalid ID");
-    if (_nNmodels < 1)
+    if (nNmodels_ < 1)
       throw GeographicErr("NumModels must be positive");
-    if (!(_nNconstants == 0 || _nNconstants == 1))
+    if (!(nNconstants_ == 0 || nNconstants_ == 1))
       throw GeographicErr("NumConstants must be 0 or 1");
-    if (!(_dt0 > 0)) {
-      if (_nNmodels > 1)
+    if (!(dt0_ > 0)) {
+      if (nNmodels_ > 1)
         throw GeographicErr("DeltaEpoch must be positive");
       else
-        _dt0 = 1;
+        dt0_ = 1;
     }
   }
 
   void MagneticModel::FieldGeocentric(real t, real X, real Y, real Z,
                                       real& BX, real& BY, real& BZ,
                                       real& BXt, real& BYt, real& BZt) const {
-    t -= _t0;
-    int n = max(min(int(floor(t / _dt0)), _nNmodels - 1), 0);
-    bool interpolate = n + 1 < _nNmodels;
-    t -= n * _dt0;
+    t -= t0_;
+    int n = max(min(int(floor(t / dt0_)), nNmodels_ - 1), 0);
+    bool interpolate = n + 1 < nNmodels_;
+    t -= n * dt0_;
     // Components in geocentric basis
     // initial values to suppress warning
     real BXc = 0, BYc = 0, BZc = 0;
-    _harm[n](X, Y, Z, BX, BY, BZ);
-    _harm[n + 1](X, Y, Z, BXt, BYt, BZt);
-    if (_nNconstants)
-      _harm[_nNmodels + 1](X, Y, Z, BXc, BYc, BZc);
+    harm_[n](X, Y, Z, BX, BY, BZ);
+    harm_[n + 1](X, Y, Z, BXt, BYt, BZt);
+    if (nNconstants_)
+      harm_[nNmodels_ + 1](X, Y, Z, BXc, BYc, BZc);
     if (interpolate) {
       // Convert to a time derivative
-      BXt = (BXt - BX) / _dt0;
-      BYt = (BYt - BY) / _dt0;
-      BZt = (BZt - BZ) / _dt0;
+      BXt = (BXt - BX) / dt0_;
+      BYt = (BYt - BY) / dt0_;
+      BZt = (BZt - BZ) / dt0_;
     }
     BX += t * BXt + BXc;
     BY += t * BYt + BYc;
     BZ += t * BZt + BZc;
 
-    BXt = BXt * - _a;
-    BYt = BYt * - _a;
-    BZt = BZt * - _a;
+    BXt = BXt * - a_;
+    BYt = BYt * - a_;
+    BZt = BZt * - a_;
 
-    BX *= - _a;
-    BY *= - _a;
-    BZ *= - _a;
+    BX *= - a_;
+    BY *= - a_;
+    BZ *= - a_;
   }
 
   void MagneticModel::Field(real t, real lat, real lon, real h, bool diffp,
@@ -220,7 +220,7 @@ namespace GeographicLib {
                             real& Bxt, real& Byt, real& Bzt) const {
     real X, Y, Z;
     real M[Geocentric::dim2_];
-    _earth.IntForward(lat, lon, h, X, Y, Z, M);
+    earth_.IntForward(lat, lon, h, X, Y, Z, M);
     // Components in geocentric basis
     // initial values to suppress warning
     real BX = 0, BY = 0, BZ = 0, BXt = 0, BYt = 0, BZt = 0;
@@ -231,24 +231,24 @@ namespace GeographicLib {
   }
 
   MagneticCircle MagneticModel::Circle(real t, real lat, real h) const {
-    real t1 = t - _t0;
-    int n = max(min(int(floor(t1 / _dt0)), _nNmodels - 1), 0);
-    bool interpolate = n + 1 < _nNmodels;
-    t1 -= n * _dt0;
+    real t1 = t - t0_;
+    int n = max(min(int(floor(t1 / dt0_)), nNmodels_ - 1), 0);
+    bool interpolate = n + 1 < nNmodels_;
+    t1 -= n * dt0_;
     real X, Y, Z, M[Geocentric::dim2_];
-    _earth.IntForward(lat, 0, h, X, Y, Z, M);
+    earth_.IntForward(lat, 0, h, X, Y, Z, M);
     // Y = 0, cphi = M[7], sphi = M[8];
 
-    return (_nNconstants == 0 ?
-            MagneticCircle(_a, _earth._f, lat, h, t,
-                           M[7], M[8], t1, _dt0, interpolate,
-                           _harm[n].Circle(X, Z, true),
-                           _harm[n + 1].Circle(X, Z, true)) :
-            MagneticCircle(_a, _earth._f, lat, h, t,
-                           M[7], M[8], t1, _dt0, interpolate,
-                           _harm[n].Circle(X, Z, true),
-                           _harm[n + 1].Circle(X, Z, true),
-                           _harm[_nNmodels + 1].Circle(X, Z, true)));
+    return (nNconstants_ == 0 ?
+            MagneticCircle(a_, earth_.f_, lat, h, t,
+                           M[7], M[8], t1, dt0_, interpolate,
+                           harm_[n].Circle(X, Z, true),
+                           harm_[n + 1].Circle(X, Z, true)) :
+            MagneticCircle(a_, earth_.f_, lat, h, t,
+                           M[7], M[8], t1, dt0_, interpolate,
+                           harm_[n].Circle(X, Z, true),
+                           harm_[n + 1].Circle(X, Z, true),
+                           harm_[nNmodels_ + 1].Circle(X, Z, true)));
   }
 
   void MagneticModel::FieldComponents(real Bx, real By, real Bz,

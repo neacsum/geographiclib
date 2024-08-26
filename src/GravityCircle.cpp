@@ -24,63 +24,63 @@ namespace GeographicLib {
                                const CircularEngine& gravitational,
                                const CircularEngine& disturbing,
                                const CircularEngine& correction)
-    : _caps(caps)
-    , _a(a)
-    , _f(f)
-    , _lat(Math::LatFix(lat))
-    , _h(h)
-    , _zZ(Z)
-    , _pPx(P)
-    , _invR(1 / hypot(_pPx, _zZ))
-    , _cpsi(_pPx * _invR)
-    , _spsi(_zZ * _invR)
-    , _cphi(cphi)
-    , _sphi(sphi)
-    , _amodel(amodel)
-    , _gGMmodel(GMmodel)
-    , _dzonal0(dzonal0)
-    , _corrmult(corrmult)
-    , _gamma0(gamma0)
-    , _gamma(gamma)
-    , _frot(frot)
-    , _gravitational(gravitational)
-    , _disturbing(disturbing)
-    , _correction(correction)
+    : caps_(caps)
+    , a_(a)
+    , f_(f)
+    , lat_(Math::LatFix(lat))
+    , h_(h)
+    , zZ_(Z)
+    , pPx_(P)
+    , invR_(1 / hypot(pPx_, zZ_))
+    , cpsi_(pPx_ * invR_)
+    , spsi_(zZ_ * invR_)
+    , cphi_(cphi)
+    , sphi_(sphi)
+    , amodel_(amodel)
+    , gGMmodel_(GMmodel)
+    , dzonal0_(dzonal0)
+    , corrmult_(corrmult)
+    , gamma0_(gamma0)
+    , gamma_(gamma)
+    , frot_(frot)
+    , gravitational_(gravitational)
+    , disturbing_(disturbing)
+    , correction_(correction)
     {}
 
-  Math::real GravityCircle::Gravity(real lon,
+  real GravityCircle::Gravity(real lon,
                                     real& gx, real& gy, real& gz) const {
     real slam, clam, M[Geocentric::dim2_];
     Math::sincosd(lon, slam, clam);
     real Wres = W(slam, clam, gx, gy, gz);
-    Geocentric::Rotation(_sphi, _cphi, slam, clam, M);
+    Geocentric::Rotation(sphi_, cphi_, slam, clam, M);
     Geocentric::Unrotate(M, gx, gy, gz, gx, gy, gz);
     return Wres;
   }
 
-  Math::real GravityCircle::Disturbance(real lon, real& deltax, real& deltay,
+  real GravityCircle::Disturbance(real lon, real& deltax, real& deltay,
                                         real& deltaz) const {
     real slam, clam, M[Geocentric::dim2_];
     Math::sincosd(lon, slam, clam);
     real Tres = InternalT(slam, clam, deltax, deltay, deltaz, true, true);
-    Geocentric::Rotation(_sphi, _cphi, slam, clam, M);
+    Geocentric::Rotation(sphi_, cphi_, slam, clam, M);
     Geocentric::Unrotate(M, deltax, deltay, deltaz, deltax, deltay, deltaz);
     return Tres;
   }
 
-  Math::real GravityCircle::GeoidHeight(real lon) const {
-    if ((_caps & GEOID_HEIGHT) != GEOID_HEIGHT)
+  real GravityCircle::GeoidHeight(real lon) const {
+    if ((caps_ & GEOID_HEIGHT) != GEOID_HEIGHT)
       return Math::NaN();
     real slam, clam, dummy;
     Math::sincosd(lon, slam, clam);
     real T = InternalT(slam, clam, dummy, dummy, dummy, false, false);
-    real correction = _corrmult * _correction(slam, clam);
-    return T/_gamma0 + correction;
+    real correction = corrmult_ * correction_(slam, clam);
+    return T/gamma0_ + correction;
   }
 
   void GravityCircle::SphericalAnomaly(real lon,
                                        real& Dg01, real& xi, real& eta) const {
-    if ((_caps & SPHERICAL_ANOMALY) != SPHERICAL_ANOMALY) {
+    if ((caps_ & SPHERICAL_ANOMALY) != SPHERICAL_ANOMALY) {
       Dg01 = xi = eta = Math::NaN();
       return;
     }
@@ -91,31 +91,31 @@ namespace GeographicLib {
       T = InternalT(slam, clam, deltax, deltay, deltaz, true, false);
     // Rotate cartesian into spherical coordinates
     real MC[Geocentric::dim2_];
-    Geocentric::Rotation(_spsi, _cpsi, slam, clam, MC);
+    Geocentric::Rotation(spsi_, cpsi_, slam, clam, MC);
     Geocentric::Unrotate(MC, deltax, deltay, deltaz, deltax, deltay, deltaz);
     // H+M, Eq 2-151c
-    Dg01 = - deltaz - 2 * T * _invR;
-    xi  = -(deltay/_gamma) / Math::degree();
-    eta = -(deltax/_gamma) / Math::degree();
+    Dg01 = - deltaz - 2 * T * invR_;
+    xi  = -(deltay/gamma_) / Math::degree();
+    eta = -(deltax/gamma_) / Math::degree();
   }
 
-  Math::real GravityCircle::W(real slam, real clam,
+  real GravityCircle::W(real slam, real clam,
                               real& gX, real& gY, real& gZ) const {
-    real Wres = V(slam, clam, gX, gY, gZ) + _frot * _pPx / 2;
-    gX += _frot * clam;
-    gY += _frot * slam;
+    real Wres = V(slam, clam, gX, gY, gZ) + frot_ * pPx_ / 2;
+    gX += frot_ * clam;
+    gY += frot_ * slam;
     return Wres;
   }
 
-  Math::real GravityCircle::V(real slam, real clam,
+  real GravityCircle::V(real slam, real clam,
                               real& GX, real& GY, real& GZ) const {
-    if ((_caps & GRAVITY) != GRAVITY) {
+    if ((caps_ & GRAVITY) != GRAVITY) {
       GX = GY = GZ = Math::NaN();
       return Math::NaN();
     }
     real
-      Vres = _gravitational(slam, clam, GX, GY, GZ),
-      f = _gGMmodel / _amodel;
+      Vres = gravitational_(slam, clam, GX, GY, GZ),
+      f = gGMmodel_ / amodel_;
     Vres *= f;
     GX *= f;
     GY *= f;
@@ -123,34 +123,34 @@ namespace GeographicLib {
     return Vres;
   }
 
-  Math::real GravityCircle::InternalT(real slam, real clam,
+  real GravityCircle::InternalT(real slam, real clam,
                                       real& deltaX, real& deltaY, real& deltaZ,
                                       bool gradp, bool correct) const {
     if (gradp) {
-      if ((_caps & DISTURBANCE) != DISTURBANCE) {
+      if ((caps_ & DISTURBANCE) != DISTURBANCE) {
         deltaX = deltaY = deltaZ = Math::NaN();
         return Math::NaN();
       }
     } else {
-      if ((_caps & DISTURBING_POTENTIAL) != DISTURBING_POTENTIAL)
+      if ((caps_ & DISTURBING_POTENTIAL) != DISTURBING_POTENTIAL)
         return Math::NaN();
     }
-    if (_dzonal0 == 0)
+    if (dzonal0_ == 0)
       correct = false;
     real T = (gradp
-              ? _disturbing(slam, clam, deltaX, deltaY, deltaZ)
-              : _disturbing(slam, clam));
-    T = (T / _amodel - (correct ? _dzonal0 : 0) * _invR) * _gGMmodel;
+              ? disturbing_(slam, clam, deltaX, deltaY, deltaZ)
+              : disturbing_(slam, clam));
+    T = (T / amodel_ - (correct ? dzonal0_ : 0) * invR_) * gGMmodel_;
     if (gradp) {
-      real f = _gGMmodel / _amodel;
+      real f = gGMmodel_ / amodel_;
       deltaX *= f;
       deltaY *= f;
       deltaZ *= f;
       if (correct) {
-        real r3 = _gGMmodel * _dzonal0 * _invR * _invR * _invR;
-        deltaX += _pPx * clam * r3;
-        deltaY += _pPx * slam * r3;
-        deltaZ += _zZ * r3;
+        real r3 = gGMmodel_ * dzonal0_ * invR_ * invR_ * invR_;
+        deltaX += pPx_ * clam * r3;
+        deltaY += pPx_ * slam * r3;
+        deltaZ += zZ_ * r3;
       }
     }
     return T;

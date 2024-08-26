@@ -18,45 +18,45 @@ using namespace std;
 namespace GeographicLib {
 
   Intersect::Intersect(const Geodesic& geod)
-    : _geod(geod)
-    , _a(_geod.EquatorialRadius())
-    , _f(_geod.Flattening())
-    , _rR(sqrt(_geod.EllipsoidArea() / (4 * Math::pi())))
-    , _d(_rR * Math::pi())      // Used to normalize intersection points
-    , _eps(3 * numeric_limits<real>::epsilon())
-    , _tol(_d * pow(numeric_limits<real>::epsilon(), 3/real(4)))
-    , _delta(_d * pow(numeric_limits<real>::epsilon(), 1/real(5)))
-    , _comp(_delta)
+    : geod_(geod)
+    , a_(geod_.EquatorialRadius())
+    , f_(geod_.Flattening())
+    , rR_(sqrt(geod_.EllipsoidArea() / (4 * Math::pi())))
+    , d_(rR_ * Math::pi())      // Used to normalize intersection points
+    , eps_(3 * numeric_limits<real>::epsilon())
+    , tol_(d_ * pow(numeric_limits<real>::epsilon(), 3/real(4)))
+    , delta_(d_ * pow(numeric_limits<real>::epsilon(), 1/real(5)))
+    , _comp(delta_)
     , _cnt0(0)
     , _cnt1(0)
     , _cnt2(0)
     , _cnt3(0)
     , _cnt4(0)
   {
-    _t1 = _t4 = _a * (1 - _f) * Math::pi();
-    _t2 = 2 * distpolar(90);
-    _geod.Inverse(0, 0, 90, 0, _t5); _t5 *= 2;
-    if (_f > 0) {
-      _t3 = distoblique();
-      _t4 = _t1;
+    t1_ = t4_ = a_ * (1 - f_) * Math::pi();
+    t2_ = 2 * distpolar(90);
+    geod_.Inverse(0, 0, 90, 0, t5_); t5_ *= 2;
+    if (f_ > 0) {
+      t3_ = distoblique();
+      t4_ = t1_;
     } else {
-      _t3 = _t5;
-      _t4 = polarb();
-      swap(_t1, _t2);
+      t3_ = t5_;
+      t4_ = polarb();
+      swap(t1_, t2_);
     }
-    _d1 = _t2 / 2;
-    _d2 = 2 * _t3 / 3;
-    _d3 = _t4 - _delta;
-    if (! (_d1 < _d3 && _d2 < _d3 && _d2 < 2 * _t1) )
+    d1_ = t2_ / 2;
+    d2_ = 2 * t3_ / 3;
+    d3_ = t4_ - delta_;
+    if (! (d1_ < d3_ && d2_ < d3_ && d2_ < 2 * t1_) )
       throw GeographicErr("Ellipsoid too eccentric for Closest");
   }
 
   Intersect::Point
-  Intersect::Closest(Math::real latX, Math::real lonX, Math::real aziX,
-                     Math::real latY, Math::real lonY, Math::real aziY,
+  Intersect::Closest(real latX, real lonX, real aziX,
+                     real latY, real lonY, real aziY,
                      const Intersect::Point& p0, int* c) const {
-    return Closest(_geod.Line(latX, lonX, aziX, LineCaps),
-                   _geod.Line(latY, lonY, aziY, LineCaps),
+    return Closest(geod_.Line(latX, lonX, aziX, LineCaps),
+                   geod_.Line(latY, lonY, aziY, LineCaps),
                    p0, c);
   }
 
@@ -69,13 +69,13 @@ namespace GeographicLib {
   }
 
   Intersect::Point
-  Intersect::Segment(Math::real latX1, Math::real lonX1,
-                     Math::real latX2, Math::real lonX2,
-                     Math::real latY1, Math::real lonY1,
-                     Math::real latY2, Math::real lonY2,
+  Intersect::Segment(real latX1, real lonX1,
+                     real latX2, real lonX2,
+                     real latY1, real lonY1,
+                     real latY2, real lonY2,
                      int& segmode, int* c) const {
-    return Segment(_geod.InverseLine(latX1, lonX1, latX2, lonX2, LineCaps),
-                   _geod.InverseLine(latY1, lonY1, latY2, lonY2, LineCaps),
+    return Segment(geod_.InverseLine(latX1, lonX1, latX2, lonX2, LineCaps),
+                   geod_.InverseLine(latY1, lonY1, latY2, lonY2, LineCaps),
                    segmode, c);
   }
 
@@ -88,10 +88,10 @@ namespace GeographicLib {
   }
 
   Intersect::Point
-  Intersect::Next(Math::real latX, Math::real lonX,
-                  Math::real aziX, Math::real aziY, int* c) const {
-    return Next(_geod.Line(latX, lonX, aziX, LineCaps),
-                _geod.Line(latX, lonX, aziY, LineCaps), c);
+  Intersect::Next(real latX, real lonX,
+                  real aziX, real aziY, int* c) const {
+    return Next(geod_.Line(latX, lonX, aziX, LineCaps),
+                geod_.Line(latX, lonX, aziY, LineCaps), c);
   }
 
   Intersect::Point
@@ -103,34 +103,34 @@ namespace GeographicLib {
   }
 
   std::vector<Intersect::Point>
-  Intersect::All(Math::real latX, Math::real lonX, Math::real aziX,
-                 Math::real latY, Math::real lonY, Math::real aziY,
-                 Math::real maxdist, const Point& p0) const {
-    return All(_geod.Line(latX, lonX, aziX, LineCaps),
-               _geod.Line(latY, lonY, aziY, LineCaps),
+  Intersect::All(real latX, real lonX, real aziX,
+                 real latY, real lonY, real aziY,
+                 real maxdist, const Point& p0) const {
+    return All(geod_.Line(latX, lonX, aziX, LineCaps),
+               geod_.Line(latY, lonY, aziY, LineCaps),
                maxdist, p0);
   }
 
   std::vector<Intersect::Point>
-  Intersect::All(Math::real latX, Math::real lonX, Math::real aziX,
-                 Math::real latY, Math::real lonY, Math::real aziY,
-                 Math::real maxdist, std::vector<int>& c, const Point& p0)
+  Intersect::All(real latX, real lonX, real aziX,
+                 real latY, real lonY, real aziY,
+                 real maxdist, std::vector<int>& c, const Point& p0)
     const {
-    return All(_geod.Line(latX, lonX, aziX, LineCaps),
-               _geod.Line(latY, lonY, aziY, LineCaps),
+    return All(geod_.Line(latX, lonX, aziX, LineCaps),
+               geod_.Line(latY, lonY, aziY, LineCaps),
                maxdist, c, p0);
   }
 
   std::vector<Intersect::Point>
   Intersect::All(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                 Math::real maxdist, const Point& p0) const {
+                 real maxdist, const Point& p0) const {
     vector<int> c;
     return AllInternal(lineX, lineY, maxdist, p0, c, false);
   }
 
   std::vector<Intersect::Point>
   Intersect::All(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                 Math::real maxdist, std::vector<int>& c, const Point& p0)
+                 real maxdist, std::vector<int>& c, const Point& p0)
     const {
     return AllInternal(lineX, lineY, maxdist, p0, c, true);
   }
@@ -144,8 +144,8 @@ namespace GeographicLib {
     lineX.Position(p.x , latX, lonX, aziX);
     lineY.Position(p.y, latY, lonY, aziY);
     real z, aziXa, aziYa;
-    _geod.Inverse(latX, lonX, latY, lonY, z, aziXa, aziYa);
-    real sinz = sin(z/_rR), cosz = cos(z/_rR);
+    geod_.Inverse(latX, lonX, latY, lonY, z, aziXa, aziYa);
+    real sinz = sin(z/rR_), cosz = cos(z/rR_);
     // X = interior angle at X, Y = exterior angle at Y
     real dX, dY, dXY,
       X = Math::AngDiff(aziX, aziXa, dX), Y = Math::AngDiff(aziY, aziYa, dY),
@@ -161,16 +161,16 @@ namespace GeographicLib {
     real sinY, cosY; Math::sincosde(s*Y, s*dY, sinY, cosY);
     real sX, sY;
     int c;
-    if (z <= _eps * _rR) {
+    if (z <= eps_ * rR_) {
       sX = sY = 0;              // Already at intersection
       // Determine whether lineX and lineY are parallel or antiparallel
-      if (fabs(sinX - sinY) <= _eps && fabs(cosX - cosY) <= _eps)
+      if (fabs(sinX - sinY) <= eps_ && fabs(cosX - cosY) <= eps_)
         c = 1;
-      else if (fabs(sinX + sinY) <= _eps && fabs(cosX + cosY) <= _eps)
+      else if (fabs(sinX + sinY) <= eps_ && fabs(cosX + cosY) <= eps_)
         c = -1;
       else
         c = 0;
-    } else if (fabs(sinX) <= _eps && fabs(sinY) <= _eps) {
+    } else if (fabs(sinX) <= eps_ && fabs(sinY) <= eps_) {
       c = cosX * cosY > 0 ? 1 : -1;
       // Coincident geodesics, place intersection at midpoint
       sX =  cosX * z/2; sY = -cosY * z/2;
@@ -181,8 +181,8 @@ namespace GeographicLib {
       // underflow in {sinX,sinY}*sinz; this is probably not necessary].
       // Definitely need to treat sinz < 0 (z > pi*R) correctly.  Without
       // this we have some convergence failures in Basic.
-      sX = _rR * atan2(sinY * sinz,  sinY * cosX * cosz - cosY * sinX);
-      sY = _rR * atan2(sinX * sinz, -sinX * cosY * cosz + cosX * sinY);
+      sX = rR_ * atan2(sinY * sinz,  sinY * cosX * cosz - cosY * sinX);
+      sY = rR_ * atan2(sinX * sinz, -sinX * cosY * cosz + cosX * sinY);
       c = 0;
     }
     return XPoint(sX, sY, c);
@@ -200,7 +200,7 @@ namespace GeographicLib {
       ++_cnt0;
       XPoint dq = Spherical(lineX, lineY, q);
       q += dq;
-      if (q.c || !(dq.Dist() > _tol)) break; // break if nan
+      if (q.c || !(dq.Dist() > tol_)) break; // break if nan
     }
     return q;
   }
@@ -215,14 +215,14 @@ namespace GeographicLib {
     XPoint q;                    // Best intersection so far
     for (int n = 0; n < num; ++n) {
       if (skip[n]) continue;
-      XPoint qx = Basic(lineX, lineY, p0 + XPoint(ix[n] * _d1, iy[n] * _d1));
+      XPoint qx = Basic(lineX, lineY, p0 + XPoint(ix[n] * d1_, iy[n] * d1_));
       qx = fixcoincident(p0, qx);
       if (_comp.eq(q, qx)) continue;
-      if (qx.Dist(p0) < _t1) { q = qx; ++_cnt2; break; }
+      if (qx.Dist(p0) < t1_) { q = qx; ++_cnt2; break; }
       if (n == 0 || qx.Dist(p0) < q.Dist(p0)) { q = qx; ++_cnt2; }
       for (int m = n + 1; m < num; ++m)
         skip[m] = skip[m] ||
-          qx.Dist(p0 + XPoint(ix[m]*_d1, iy[m]*_d1)) < 2*_t1 - _d1 - _delta;
+          qx.Dist(p0 + XPoint(ix[m]*d1_, iy[m]*d1_)) < 2*t1_ - d1_ - delta_;
     }
     return q;
   }
@@ -238,13 +238,13 @@ namespace GeographicLib {
       q(Math::infinity(), 0);   // Best intersection so far
     for (int n = 0; n < num; ++n) {
       if (skip[n]) continue;
-      XPoint qx = Basic(lineX, lineY, XPoint(ix[n] * _d2, iy[n] * _d2));
+      XPoint qx = Basic(lineX, lineY, XPoint(ix[n] * d2_, iy[n] * d2_));
       qx = fixcoincident(z, qx);
       bool zerop = _comp.eq(z, qx);
       if (qx.c == 0 && zerop) continue;
       if (qx.c && zerop) {
         for (int sgn = -1; sgn <= 1; sgn+=2) {
-          real s = ConjugateDist(lineX, sgn * _d, false);
+          real s = ConjugateDist(lineX, sgn * d_, false);
           XPoint qa(s, qx.c*s, qx.c);
           if (qa.Dist() < q.Dist()) { q = qa; ++_cnt2; }
         }
@@ -255,10 +255,10 @@ namespace GeographicLib {
         // if qx.c == 0 only process sgn == 0
         // if zerop skip sgn == 0
         if ((qx.c == 0 && sgn != 0) || (zerop && sgn == 0)) continue;
-        XPoint qy = qx.c ? qx + Point(sgn * _d2, qx.c * sgn *_d2) : qx;
+        XPoint qy = qx.c ? qx + Point(sgn * d2_, qx.c * sgn *d2_) : qx;
         for (int m = n + 1; m < num; ++m)
           skip[m] = skip[m] ||
-            qy.Dist(XPoint(ix[m]*_d2, iy[m]*_d2)) < 2*_t1 - _d2 - _delta;
+            qy.Dist(XPoint(ix[m]*d2_, iy[m]*d2_)) < 2*t1_ - d2_ - delta_;
       }
     }
     return q;
@@ -285,7 +285,7 @@ namespace GeographicLib {
         for (int iy = 0; iy < 2 && segmodex != 0; ++iy) {
           XPoint t(ix * sx, iy * sy); // corner point
           // Is corner outside next intersection exclusion circle?
-          if (q.Dist(t) >= 2 * _t1) {
+          if (q.Dist(t) >= 2 * t1_) {
             ++_cnt3;
             qx = Basic(lineX, lineY, t);
             // fixsegment is not needed because the coincidence line must just
@@ -305,12 +305,12 @@ namespace GeographicLib {
   std::vector<Intersect::XPoint>
   Intersect::AllInt0(const GeodesicLine& lineX,
                      const GeodesicLine& lineY,
-                     Math::real maxdist, const XPoint& p0) const {
-    real maxdistx = maxdist + _delta;
-    const int m = int(ceil(maxdistx / _d3)), // process m x m set of tiles
+                     real maxdist, const XPoint& p0) const {
+    real maxdistx = maxdist + delta_;
+    const int m = int(ceil(maxdistx / d3_)), // process m x m set of tiles
       m2 = m*m + (m - 1) % 2,                // add center tile if m is even
       n = m - 1;                             // Range of i, j = [-n:2:n]
-    real d3 = maxdistx/m;                    // d3 <= _d3
+    real d3 = maxdistx/m;                    // d3 <= d3_
     vector<XPoint> start(m2);
     vector<bool> skip(m2, false);
     int h = 0, c0 = 0;
@@ -359,7 +359,7 @@ namespace GeographicLib {
         for (int sgn = -1; sgn <= 1; sgn += 2) {
           real sa = 0;
           do {
-            sa = ConjugateDist(lineX, s0 + sa + sgn*_d, false, m12, M12, M21)
+            sa = ConjugateDist(lineX, s0 + sa + sgn*d_, false, m12, M12, M21)
               - s0;
             qc = q + XPoint(sa, c0*sa);
             added.push_back(qc);
@@ -371,7 +371,7 @@ namespace GeographicLib {
       r.insert(q);
       for (auto qp = added.cbegin(); qp != added.cend(); ++qp) {
         for (int l = k + 1; l < m2; ++l)
-          skip[l] = skip[l] || qp->Dist(start[l]) < 2*_t1 - d3 - _delta;
+          skip[l] = skip[l] || qp->Dist(start[l]) < 2*t1_ - d3 - delta_;
       }
     }
     // Trim intersections to maxdist
@@ -391,7 +391,7 @@ namespace GeographicLib {
 
   std::vector<Intersect::Point>
   Intersect::AllInternal(const GeodesicLine& lineX, const GeodesicLine& lineY,
-                         Math::real maxdist, const Point& p0,
+                         real maxdist, const Point& p0,
                          std::vector<int>& c, bool cp) const {
     const vector<XPoint>
       v = AllInt0(lineX, lineY, fmax(real(0), maxdist), XPoint(p0));
@@ -405,13 +405,13 @@ namespace GeographicLib {
     return u;
   }
 
-  Math::real Intersect::distpolar(Math::real lat1, Math::real* lat2)
+  real Intersect::distpolar(real lat1, real* lat2)
     const {
-    GeodesicLine line = _geod.Line(lat1, 0, 0,
+    GeodesicLine line = geod_.Line(lat1, 0, 0,
                                    GeodesicLine::REDUCEDLENGTH |
                                    GeodesicLine::GEODESICSCALE |
                                    GeodesicLine::DISTANCE_IN);
-    real s = ConjugateDist(line, (1 + _f/2) * _a * Math::pi() / 2, true);
+    real s = ConjugateDist(line, (1 + f_/2) * a_ * Math::pi() / 2, true);
     if (lat2) {
       real t;
       line.GenPosition(false, s, GeodesicLine::LATITUDE,
@@ -420,11 +420,11 @@ namespace GeographicLib {
     return s;
   }
 
-  Math::real Intersect::polarb(Math::real* lata, Math::real* latb) const {
-    if (_f == 0) {
+  real Intersect::polarb(real* lata, real* latb) const {
+    if (f_ == 0) {
       if (lata) *lata = 64;
       if (latb) *latb = 90-64;
-      return _d;
+      return d_;
     }
     real
       lat0 = 63, s0 = distpolar(lat0),
@@ -440,7 +440,7 @@ namespace GeographicLib {
       lat0 = lat1; s0 = s1;
       lat1 = lat2; s1 = s2;
       lat2 = latn; s2 = distpolar(lat2);
-      if (_f < 0 ? (s2 < sx) : (s2 > sx)) {
+      if (f_ < 0 ? (s2 < sx) : (s2 > sx)) {
         sx = s2;
         latx = lat2;
       }
@@ -451,9 +451,9 @@ namespace GeographicLib {
   }
 
   // Find {semi-,}conjugate point relative to s0 which is close to s1.
-  Math::real Intersect::ConjugateDist(const GeodesicLine& line, Math::real s3,
-                                      bool semi, Math::real m12,
-                                      Math::real M12, Math::real M21) const {
+  real Intersect::ConjugateDist(const GeodesicLine& line, real s3,
+                                      bool semi, real m12,
+                                      real M12, real M21) const {
     // semi = false: solve for m23 = 0 using dm23/ds3 = M32
     // semi = true : solve for M23 = 0 using dM23/ds3 = - (1 - M23*M32)/m23
     // Here 2 is point with given m12, M12, M21 and default values s.t. point 2
@@ -473,16 +473,16 @@ namespace GeographicLib {
         M32 = M31 * M12 + (m13 == 0 ? 0 : (1 - M13 * M31) * m12/m13);
       real ds = semi ? m23 * M23 / (1 - M23*M32) : -m23 / M32;
       s = s + ds;
-      if (!(fabs(ds) > _tol)) break;
+      if (!(fabs(ds) > tol_)) break;
     }
     return s;
   }
 
-  Math::real Intersect::conjdist(Math::real azi,
-                                 Math::real* ds,
-                                 Math::real* sp, Math::real* sm) const {
-    GeodesicLine line = _geod.Line(0, 0, azi, LineCaps);
-    real s = ConjugateDist(line, _d, false);
+  real Intersect::conjdist(real azi,
+                                 real* ds,
+                                 real* sp, real* sm) const {
+    GeodesicLine line = geod_.Line(0, 0, azi, LineCaps);
+    real s = ConjugateDist(line, d_, false);
     if (ds) {
       XPoint p = Basic(line, line, XPoint(s/2, -3*s/2));
       if (sp) *sp = p.x;
@@ -492,14 +492,14 @@ namespace GeographicLib {
     return s;
   }
 
-  Math::real Intersect::distoblique(Math::real* azi,
-                                    Math::real* sp,
-                                    Math::real* sm) const {
-    if (_f == 0) {
+  real Intersect::distoblique(real* azi,
+                                    real* sp,
+                                    real* sm) const {
+    if (f_ == 0) {
       if (azi) *azi = 45;
       if (sp) *sp = 0.5;
       if (sm) *sm = -1.5;
-      return _d;
+      return d_;
     }
     real sa, sb,
       azi0 = 46, ds0, s0 = conjdist(azi0, &ds0, &sa, &sb),
@@ -545,7 +545,7 @@ namespace GeographicLib {
   }
 
   Intersect::XPoint
-  Intersect::fixsegment(Math::real sx, Math::real sy,
+  Intersect::fixsegment(real sx, real sy,
                         const Intersect::XPoint& p) {
     if (p.c == 0) return p;
     // eq0: [p1x = px+s, p1y = py+f*s]$

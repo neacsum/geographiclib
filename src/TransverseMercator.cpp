@@ -43,26 +43,26 @@ namespace GeographicLib {
 
   TransverseMercator::TransverseMercator(real a, real f, real k0,
                                          bool exact, bool extendp)
-    : _a(a)
-    , _f(f)
-    , _k0(k0)
-    , _exact(exact)
-    , _e2(_f * (2 - _f))
-    , _es((_f < 0 ? -1 : 1) * sqrt(fabs(_e2)))
-    , _e2m(1 - _e2)
-      // _c = sqrt( pow(1 + _e, 1 + _e) * pow(1 - _e, 1 - _e) ) )
+    : a_(a)
+    , f_(f)
+    , k0_(k0)
+    , exact_(exact)
+    , e2_(f_ * (2 - f_))
+    , es_((f_ < 0 ? -1 : 1) * sqrt(fabs(e2_)))
+    , e2m_(1 - e2_)
+      // c_ = sqrt( pow(1 + e_, 1 + e_) * pow(1 - e_, 1 - e_) ) )
       // See, for example, Lee (1976), p 100.
-    , _c( sqrt(_e2m) * exp(Math::eatanhe(real(1), _es)) )
-    , _n(_f / (2 - _f))
-    , _tmexact(_exact ? TransverseMercatorExact(a, f, k0, extendp) :
+    , c_( sqrt(e2m_) * exp(Math::eatanhe(real(1), es_)) )
+    , n_(f_ / (2 - f_))
+    , tmexact_(exact_ ? TransverseMercatorExact(a, f, k0, extendp) :
                TransverseMercatorExact())
   {
-    if (_exact) return;
-    if (!(isfinite(_a) && _a > 0))
+    if (exact_) return;
+    if (!(isfinite(a_) && a_ > 0))
       throw GeographicErr("Equatorial radius is not positive");
-    if (!(isfinite(_f) && _f < 1))
+    if (!(isfinite(f_) && f_ < 1))
       throw GeographicErr("Polar semi-axis is not positive");
-    if (!(isfinite(_k0) && _k0 > 0))
+    if (!(isfinite(k0_) && k0_ > 0))
       throw GeographicErr("Scale is not positive");
     if (extendp)
       throw GeographicErr("TransverseMercator extendp not allowed if !exact");
@@ -262,18 +262,18 @@ namespace GeographicLib {
                   (maxpow_ * (maxpow_ + 3))/2,
                   "Coefficient array size mismatch for bet");
     int m = maxpow_/2;
-    _b1 = Math::polyval(m, b1coeff, Math::sq(_n)) / (b1coeff[m + 1] * (1+_n));
-    // _a1 is the equivalent radius for computing the circumference of
+    b1_ = Math::polyval(m, b1coeff, Math::sq(n_)) / (b1coeff[m + 1] * (1+n_));
+    // a1_ is the equivalent radius for computing the circumference of
     // ellipse.
-    _a1 = _b1 * _a;
+    a1_ = b1_ * a_;
     int o = 0;
-    real d = _n;
+    real d = n_;
     for (int l = 1; l <= maxpow_; ++l) {
       m = maxpow_ - l;
-      _alp[l] = d * Math::polyval(m, alpcoeff + o, _n) / alpcoeff[o + m + 1];
-      _bet[l] = d * Math::polyval(m, betcoeff + o, _n) / betcoeff[o + m + 1];
+      alp_[l] = d * Math::polyval(m, alpcoeff + o, n_) / alpcoeff[o + m + 1];
+      bet_[l] = d * Math::polyval(m, betcoeff + o, n_) / betcoeff[o + m + 1];
       o += m + 2;
-      d *= _n;
+      d *= n_;
     }
     // Post condition: o == sizeof(alpcoeff) / sizeof(real) &&
     // o == sizeof(betcoeff) / sizeof(real)
@@ -355,8 +355,8 @@ namespace GeographicLib {
   void TransverseMercator::Forward(real lon0, real lat, real lon,
                                    real& x, real& y,
                                    real& gamma, real& k) const {
-    if (_exact)
-      return _tmexact.Forward(lon0, lat, lon, x, y, gamma, k);
+    if (exact_)
+      return tmexact_.Forward(lon0, lat, lon, x, y, gamma, k);
     lat = Math::LatFix(lat);
     lon = Math::AngDiff(lon0, lon);
     // Explicitly enforce the parity
@@ -365,11 +365,11 @@ namespace GeographicLib {
       lonsign = signbit(lon) ? -1 : 1;
     lon *= lonsign;
     lat *= latsign;
-    bool backside = lon > Math::qd;
+    bool backside = lon > 90;
     if (backside) {
       if (lat == 0)
         latsign = -1;
-      lon = Math::hd - lon;
+      lon = 180 - lon;
     }
     real sphi, cphi, slam, clam;
     Math::sincosd(lat, sphi, cphi);
@@ -392,10 +392,10 @@ namespace GeographicLib {
     //   cosh(etap) = 1/denom                  = 1/denom
     //   sinh(etap) = cos(phi')*sin(lam)/denom = sech(psi)*sin(lam)/denom
     real etap, xip;
-    if (lat != Math::qd) {
+    if (lat != 90) {
       real
         tau = sphi / cphi,
-        taup = Math::taupf(tau, _es);
+        taup = Math::taupf(tau, es_);
       xip = atan2(taup, clam);
       // Used to be
       //   etap = Math::atanh(sin(lam) / cosh(psi));
@@ -405,20 +405,20 @@ namespace GeographicLib {
       // sin(phi') = tau'/sqrt(1 + tau'^2)
       // Krueger p 22 (44)
       gamma = Math::atan2d(slam * taup, clam * hypot(real(1), taup));
-      // k0 = sqrt(1 - _e2 * sin(phi)^2) * (cos(phi') / cos(phi)) * cosh(etap)
+      // k0 = sqrt(1 - e2_ * sin(phi)^2) * (cos(phi') / cos(phi)) * cosh(etap)
       // Note 1/cos(phi) = cosh(psip);
       // and cos(phi') * cosh(etap) = 1/hypot(sinh(psi), cos(lam))
       //
       // This form has cancelling errors.  This property is lost if cosh(psip)
       // is replaced by 1/cos(phi), even though it's using "primary" data (phi
       // instead of psip).
-      k = sqrt(_e2m + _e2 * Math::sq(cphi)) * hypot(real(1), tau)
+      k = sqrt(e2m_ + e2_ * Math::sq(cphi)) * hypot(real(1), tau)
         / hypot(taup, clam);
     } else {
       xip = Math::pi()/2;
       etap = 0;
       gamma = lon;
-      k = _c;
+      k = c_;
     }
     // {xi',eta'} is {northing,easting} for Gauss-Schreiber transverse Mercator
     // (for eta' = 0, xi' = bet). {xi,eta} is {northing,easting} for transverse
@@ -429,11 +429,11 @@ namespace GeographicLib {
     //   zeta' = xi' + i*eta'
     //
     // The conversion from conformal to rectifying latitude can be expressed as
-    // a series in _n:
+    // a series in n_:
     //
     //   zeta = zeta' + sum(h[j-1]' * sin(2 * j * zeta'), j = 1..maxpow_)
     //
-    // where h[j]' = O(_n^j).  The reversion of this series gives
+    // where h[j]' = O(n_^j).  The reversion of this series gives
     //
     //   zeta' = zeta - sum(h[j-1] * sin(2 * j * zeta), j = 1..maxpow_)
     //
@@ -461,7 +461,7 @@ namespace GeographicLib {
     //    beta[k](x) = -1
     //    [ sin(A+B) - 2*cos(B)*sin(A) + sin(A-B) = 0, A = k*x, B = x ]
     //    n = maxpow_
-    //    a[k] = _alp[k]
+    //    a[k] = alp_[k]
     //    S = b[1] * sin(x)
     //
     // For the derivative we have
@@ -471,14 +471,14 @@ namespace GeographicLib {
     //    alpha[k](x) = 2 * cos(x)
     //    beta[k](x) = -1
     //    [ cos(A+B) - 2*cos(B)*cos(A) + cos(A-B) = 0, A = k*x, B = x ]
-    //    a[0] = 1; a[k] = 2*k*_alp[k]
+    //    a[0] = 1; a[k] = 2*k*alp_[k]
     //    S = (a[0] - b[2]) + b[1] * cos(x)
     //
     // Matrix formulation (not used here):
     //    phi[k](x) = [sin(k * x); k * cos(k * x)]
     //    alpha[k](x) = 2 * [cos(x), 0; -sin(x), cos(x)]
     //    beta[k](x) = -1 * [1, 0; 0, 1]
-    //    a[k] = _alp[k] * [1, 0; 0, 1]
+    //    a[k] = alp_[k] * [1, 0; 0, 1]
     //    b[n+2] = b[n+1] = [0, 0; 0, 0]
     //    b[k] = alpha[k](x) * b[k+1] + beta[k+1](x) * b[k+2] + a[k]
     //    N.B., for all k: b[k](1,2) = 0; b[k](1,1) = b[k](2,2)
@@ -491,15 +491,15 @@ namespace GeographicLib {
     complex<real> a(2 * c0 * ch0, -2 * s0 * sh0); // 2 * cos(2*zeta')
     int n = maxpow_;
     complex<real>
-      y0(n & 1 ?       _alp[n] : 0), y1, // default initializer is 0+i0
-      z0(n & 1 ? 2*n * _alp[n] : 0), z1;
+      y0(n & 1 ?       alp_[n] : 0), y1, // default initializer is 0+i0
+      z0(n & 1 ? 2*n * alp_[n] : 0), z1;
     if (n & 1) --n;
     while (n) {
-      y1 = a * y0 - y1 +       _alp[n];
-      z1 = a * z0 - z1 + 2*n * _alp[n];
+      y1 = a * y0 - y1 +       alp_[n];
+      z1 = a * z0 - z1 + 2*n * alp_[n];
       --n;
-      y0 = a * y1 - y0 +       _alp[n];
-      z0 = a * z1 - z0 + 2*n * _alp[n];
+      y0 = a * y1 - y0 +       alp_[n];
+      z0 = a * z1 - z0 + 2*n * alp_[n];
       --n;
     }
     a /= real(2);               // cos(2*zeta')
@@ -509,28 +509,28 @@ namespace GeographicLib {
     // Fold in change in convergence and scale for Gauss-Schreiber TM to
     // Gauss-Krueger TM.
     gamma -= Math::atan2d(z1.imag(), z1.real());
-    k *= _b1 * abs(z1);
+    k *= b1_ * abs(z1);
     real xi = y1.real(), eta = y1.imag();
-    y = _a1 * _k0 * (backside ? Math::pi() - xi : xi) * latsign;
-    x = _a1 * _k0 * eta * lonsign;
+    y = a1_ * k0_ * (backside ? Math::pi() - xi : xi) * latsign;
+    x = a1_ * k0_ * eta * lonsign;
     if (backside)
-      gamma = Math::hd - gamma;
+      gamma = 180 - gamma;
     gamma *= latsign * lonsign;
     gamma = Math::AngNormalize(gamma);
-    k *= _k0;
+    k *= k0_;
   }
 
   void TransverseMercator::Reverse(real lon0, real x, real y,
                                    real& lat, real& lon,
                                    real& gamma, real& k) const {
-    if (_exact)
-      return _tmexact.Reverse(lon0, x, y, lat, lon, gamma, k);
+    if (exact_)
+      return tmexact_.Reverse(lon0, x, y, lat, lon, gamma, k);
     // This undoes the steps in Forward.  The wrinkles are: (1) Use of the
     // reverted series to express zeta' in terms of zeta. (2) Newton's method
     // to solve for phi in terms of tan(phi).
     real
-      xi = y / (_a1 * _k0),
-      eta = x / (_a1 * _k0);
+      xi = y / (a1_ * k0_),
+      eta = x / (a1_ * k0_);
     // Explicitly enforce the parity
     int
       xisign = signbit(xi) ? -1 : 1,
@@ -546,15 +546,15 @@ namespace GeographicLib {
     complex<real> a(2 * c0 * ch0, -2 * s0 * sh0); // 2 * cos(2*zeta)
     int n = maxpow_;
     complex<real>
-      y0(n & 1 ?       -_bet[n] : 0), y1, // default initializer is 0+i0
-      z0(n & 1 ? -2*n * _bet[n] : 0), z1;
+      y0(n & 1 ?       -bet_[n] : 0), y1, // default initializer is 0+i0
+      z0(n & 1 ? -2*n * bet_[n] : 0), z1;
     if (n & 1) --n;
     while (n) {
-      y1 = a * y0 - y1 -       _bet[n];
-      z1 = a * z0 - z1 - 2*n * _bet[n];
+      y1 = a * y0 - y1 -       bet_[n];
+      z1 = a * z0 - z1 - 2*n * bet_[n];
       --n;
-      y0 = a * y1 - y0 -       _bet[n];
-      z0 = a * z1 - z0 - 2*n * _bet[n];
+      y0 = a * y1 - y0 -       bet_[n];
+      z0 = a * z1 - z0 - 2*n * bet_[n];
       --n;
     }
     a /= real(2);               // cos(2*zeta)
@@ -563,7 +563,7 @@ namespace GeographicLib {
     y1 = complex<real>(xi, eta) + a * y0;
     // Convergence and scale for Gauss-Schreiber TM to Gauss-Krueger TM.
     gamma = Math::atan2d(z1.imag(), z1.real());
-    k = _b1 / abs(z1);
+    k = b1_ / abs(z1);
     // JHS 154 has
     //
     //   phi' = asin(sin(xi') / cosh(eta')) (Krueger p 17 (25))
@@ -579,27 +579,27 @@ namespace GeographicLib {
       // Use Newton's method to solve for tau
       real
         sxip = sin(xip),
-        tau = Math::tauf(sxip/r, _es);
+        tau = Math::tauf(sxip/r, es_);
       gamma += Math::atan2d(sxip * tanh(etap), c); // Krueger p 19 (31)
       lat = Math::atand(tau);
       // Note cos(phi') * cosh(eta') = r
-      k *= sqrt(_e2m + _e2 / (1 + Math::sq(tau))) *
+      k *= sqrt(e2m_ + e2_ / (1 + Math::sq(tau))) *
         hypot(real(1), tau) * r;
     } else {
-      lat = Math::qd;
+      lat = 90;
       lon = 0;
-      k *= _c;
+      k *= c_;
     }
     lat *= xisign;
     if (backside)
-      lon = Math::hd - lon;
+      lon = 180 - lon;
     lon *= etasign;
     lon = Math::AngNormalize(lon + lon0);
     if (backside)
-      gamma = Math::hd - gamma;
+      gamma = 180 - gamma;
     gamma *= xisign * etasign;
     gamma = Math::AngNormalize(gamma);
-    k *= _k0;
+    k *= k0_;
   }
 
 } // namespace GeographicLib

@@ -33,7 +33,6 @@ namespace GeographicLib {
 
   class GEOGRAPHICLIB_EXPORT Geohash {
   private:
-    typedef Math::real real;
     static const int maxlen_ = 18;
     static const unsigned long long mask_ = 1ULL << 45;
     static const char* const lcdigits_;
@@ -90,10 +89,10 @@ namespace GeographicLib {
      *
      * Internally, \e len is first put in the range [0, 18].
      **********************************************************************/
-    static Math::real LatitudeResolution(int len) {
+    static real LatitudeResolution(int len) {
       using std::ldexp;
       len = (std::max)(0, (std::min)(int(maxlen_), len));
-      return ldexp(real(Math::hd), -(5 * len / 2));
+      return ldexp(real(180), -(5 * len / 2));
     }
 
     /**
@@ -104,10 +103,10 @@ namespace GeographicLib {
      *
      * Internally, \e len is first put in the range [0, 18].
      **********************************************************************/
-    static Math::real LongitudeResolution(int len) {
+    static real LongitudeResolution(int len) {
       using std::ldexp;
       len = (std::max)(0, (std::min)(int(maxlen_), len));
-      return ldexp(real(Math::td), -(5 * len - 5 * len / 2));
+      return ldexp(real(360), -(5 * len - 5 * len / 2));
     }
 
     /**
@@ -160,7 +159,7 @@ namespace GeographicLib {
      **********************************************************************/
     static int DecimalPrecision(int len) {
       using std::floor; using std::log;
-      return -int(floor(log(LatitudeResolution(len))/log(Math::real(10))));
+      return -int(floor(log(LatitudeResolution(len))/log(real(10))));
     }
 
   };

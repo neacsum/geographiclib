@@ -96,23 +96,22 @@ namespace GeographicLib {
   template<class GeodType = Geodesic>
   class PolygonAreaT {
   private:
-    typedef Math::real real;
-    GeodType _earth;
-    real _area0;                // Full ellipsoid area
-    bool _polyline;             // Assume polyline (don't close and skip area)
-    unsigned _mask;
-    unsigned _num;
-    int _crossings;
-    Accumulator<> _areasum, _perimetersum;
-    real _lat0, _lon0, _lat1, _lon1;
+    GeodType earth_;
+    real area0_;                // Full ellipsoid area
+    bool polyline_;             // Assume polyline (don't close and skip area)
+    unsigned mask_;
+    unsigned num_;
+    int crossings_;
+    Accumulator<> areasum_, perimetersum_;
+    real lat0_, lon0_, lat1_, lon1_;
     static int transit(real lon1, real lon2);
     // an alternate version of transit to deal with longitudes in the direct
     // problem.
     static int transitdirect(real lon1, real lon2);
-    void Remainder(Accumulator<>& a) const { a.remainder(_area0); }
+    void Remainder(Accumulator<>& a) const { a.remainder(area0_); }
     void Remainder(real& a) const {
       using std::remainder;
-      a = remainder(a, _area0);
+      a = remainder(a, area0_);
     }
     template<typename T>
     void AreaReduce(T& area, int crossings, bool reverse, bool sign) const;
@@ -126,11 +125,11 @@ namespace GeographicLib {
      *   instead of a polygon (default = false).
      **********************************************************************/
     PolygonAreaT(const GeodType& earth, bool polyline = false)
-      : _earth(earth)
-      , _area0(_earth.EllipsoidArea())
-      , _polyline(polyline)
-      , _mask(GeodType::LATITUDE | GeodType::LONGITUDE | GeodType::DISTANCE |
-              (_polyline ? GeodType::NONE :
+      : earth_(earth)
+      , area0_(earth_.EllipsoidArea())
+      , polyline_(polyline)
+      , mask_(GeodType::LATITUDE | GeodType::LONGITUDE | GeodType::DISTANCE |
+              (polyline_ ? GeodType::NONE :
                GeodType::AREA | GeodType::LONG_UNROLL))
     { Clear(); }
 
@@ -138,11 +137,11 @@ namespace GeographicLib {
      * Clear PolygonAreaT, allowing a new polygon to be started.
      **********************************************************************/
     void Clear() {
-      _num = 0;
-      _crossings = 0;
-      _areasum = 0;
-      _perimetersum = 0;
-      _lat0 = _lon0 = _lat1 = _lon1 = Math::NaN();
+      num_ = 0;
+      crossings_ = 0;
+      areasum_ = 0;
+      perimetersum_ = 0;
+      lat0_ = lon0_ = lat1_ = lon1_ = Math::NaN();
     }
 
     /**
@@ -247,13 +246,13 @@ namespace GeographicLib {
      *   the value inherited from the Geodesic object used in the constructor.
      **********************************************************************/
 
-    Math::real EquatorialRadius() const { return _earth.EquatorialRadius(); }
+    real EquatorialRadius() const { return earth_.EquatorialRadius(); }
 
     /**
      * @return \e f the flattening of the ellipsoid.  This is the value
      *   inherited from the Geodesic object used in the constructor.
      **********************************************************************/
-    Math::real Flattening() const { return _earth.Flattening(); }
+    real Flattening() const { return earth_.Flattening(); }
 
     /**
      * Report the previous vertex added to the polygon or polyline.
@@ -265,7 +264,7 @@ namespace GeographicLib {
      * will be in the range [&minus;180&deg;, 180&deg;].
      **********************************************************************/
     void CurrentPoint(real& lat, real& lon) const
-    { lat = _lat1; lon = _lon1; }
+    { lat = lat1_; lon = lon1_; }
 
     /**
      * Report the number of points currently in the polygon or polyline.
@@ -274,14 +273,14 @@ namespace GeographicLib {
      *
      * If no points have been added, then 0 is returned.
      **********************************************************************/
-    unsigned NumberPoints() const { return _num; }
+    unsigned NumberPoints() const { return num_; }
 
     /**
      * Report whether the current object is a polygon or a polyline.
      *
      * @return true if the object is a polyline.
      **********************************************************************/
-    bool Polyline() const { return _polyline; }
+    bool Polyline() const { return polyline_; }
     ///@}
   };
 
